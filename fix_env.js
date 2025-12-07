@@ -1,0 +1,13 @@
+const fs = require('fs');
+const path = require('path');
+
+const key = `-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDO1mca2mbu05LL\\nt+OairlcTosJEcyrE99fm47ww9YaZTrcXMuFhxUF4xt7v7mxfx72kDGWE2YNGyY9\\nEMnI4kjRSZzVgwjTNAE6Z2yXpkQhaXIVRXGLC0OlbcCD5IR+pZGM4GnCZlQ7Pt/+\\nSxyLD9EPr6C77aK7gs8XKq0i8rgHV1fhe9qL5kCHHy9JCtUfgRFVPkdYe+j18HOw\\nO0kyiFcmgFUhfIVp9ZFLt89QMJ5wC5S6CUHo5NjAXWmaFttJEDIKkYHaQT50seur\\nlPeWpmHzL17rBoulkf6Cd+/GcFY5zfSNyZBvTwKg4dvjcfDR0YHIP1zTbKRin297\\nXStj0SC/AgMBAAECggEAHJs6l1QteEp6uwIr0GvvRvz17cMwc1jERAzXsCTlr7Dg\\neym6XDVaiv3mBy91Fz9loORAd2knbBidKUTxI39oYsmzjzQYPF2s7c7wDelI8vYK\\neTaphXmBWZfcUGGCkaGEh99hwSk17Ru9DwaEZBdD6s93g4ZSQ2zMB4A3geXf3ePO\\ntTFEwbajRnyi8tQRMWwznbUSdQPSPM3LzOB7x+1fX+yHU+yJ1Yi/6PhzBUOQQ5gR\\n7yraCe5BJXjE1ganMFynsKWaRD7UI3TzqwWzO2Usnn7Hh8fSIUapy7l9gojBuoMP\\n363rHNqlPiCSsLoQbQdIHh3LFsBDYT5maIDD3Y7MwQKBgQD7aQLghu8X+ap9PgJO\\nFkqIjiQEuvBHh4vYj5mZgZFdwtUeINdwfqxAhTqrl4vMeFWsTk3pWHzCKu5Ct8M6\\niOIcHWyBJgVwfiGrK4zg+U3yCyPaRSfmi78p/Z0PrV9JovUxMfqAoI34RlbP7KK2\\nxd/XigXyN4HpQSxfGw5nN9BO2wKBgQDSnROyTzTtb2g6Tir77COjYsMKEbtTr+rN\\ncEVBMNG2W+BVfinG6ICE68Keed67n1rrmwu/6d/BEeC9LJC2eDhAex3qgkSbD2MW\\nP5j4iFIcM6RQuGp0CfwXju4L0X1iW4NJfqrUwbZck8UXrT3ouxAF02jU5xAtpObC\\ndHDC3RJg7QKBgD0LdXhhKyLuK1h3uwWM4hIgOVywq3Ei13EBBTHBxTM4AJltLgKR\\nr2+HKgTKKla+jUbmSIK1Sq220N2AUzYeUJC1EEiXm9CBv9kZHP7vad6wl8cC7bpM\\nCmG+w+kvlqiBmfmVAhdDZNV49tFLywKIL17dk64JjlC903FQV4H2imzrAoGAQRbm\\nZW7xLogFsC9EPYMnKHF3UX9VY3G0oTUXUiRiS3dthz5sbtqgDXRHO27ylQ2UrcfH\\nA9KloieCSzSgrKPOzq69+iG0Ti+dMd0Jy5Vluu2C1KeJzr7fN/CmROTDWUhq9KW+\\n6e3MDCRm/wA9Z9WYCBTkCxg1+cVCw8n0p2RnL6kCgYEAxWyZrKlm5ApTHGeIwtwo\\nNb//2Gfhyote8oADXWr8rYGpcXrJ6p+GS92HfUfrKkp44botV5kP8mnPuF1jAGd0\\n8cQc1U6BJLpv+2zIdzhHZF1vN0iFcizEt6ZSFNC+8FPHwTshiFgRat6p05vlyz7f\\nKvzUu6lBTGh9NCv+FyF2QFc=\\n-----END PRIVATE KEY-----\\n`;
+
+const content = `# Google Sheets API Credentials
+GOOGLE_SHEETS_CLIENT_EMAIL="poppin-flea-bot@poppin-flea.iam.gserviceaccount.com"
+GOOGLE_SHEETS_PRIVATE_KEY="${key}"
+GOOGLE_SHEET_ID="1KBL1bQLrj3lXPOhv_ztkflGR2hhMOGg4_MBnSUwoEfk"
+`;
+
+fs.writeFileSync(path.join(process.cwd(), '.env.local'), content);
+console.log('.env.local updated successfully');

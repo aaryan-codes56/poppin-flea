@@ -1,0 +1,41 @@
+.navbar {
+    padding: 0.5rem 0;
+    background-color: var(--accent-white);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logoContainer {
+    display: flex;
+    align-items: center;
+}
+
+.logoImage {
+    height: 90px;
+    /* Adjust based on logo aspect ratio */
+    width: auto;
+    object-fit: contain;
+}
+
+.links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.link {
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.link:hover {
+    color: var(--primary-yellow-hover);
+}
