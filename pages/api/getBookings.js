@@ -39,7 +39,10 @@ export default async function handler(req, res) {
         const bookings = rows
             .filter((row, index) => {
                 // Filter out if it's the header row (checking first column)
-                if (row[0] === 'Ref ID') return false;
+                // The user's sheet seems to have '#Reference ID' or 'Ref ID'
+                const firstCol = row[0] ? String(row[0]).trim() : '';
+                if (firstCol === 'Ref ID' || firstCol === '#Reference ID' || firstCol === 'Reference ID') return false;
+
                 // Filter out if Ref ID is missing or Name is empty
                 if (!row[0] || !row[1]) return false;
                 return true;

@@ -15,6 +15,10 @@ export default function AdminDashboard() {
             router.push('/admin/login');
         } else {
             fetchBookings();
+
+            // Auto-refresh every 10 seconds to keep devices in sync
+            const interval = setInterval(fetchBookings, 10000);
+            return () => clearInterval(interval);
         }
     }, []);
 
