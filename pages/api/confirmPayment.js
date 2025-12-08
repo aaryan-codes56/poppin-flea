@@ -29,8 +29,8 @@ export default async function handler(req, res) {
         const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
         // 1. Update Status to "Reserved" in Column N (Index 13)
-        // Row index is passed from frontend (0-based from the array, so +2 for 1-based sheet index with header)
-        const sheetRowIndex = rowIndex + 2;
+        // Row index is passed from frontend (It is now the ACTUAL sheet row index)
+        const sheetRowIndex = rowIndex;
 
         await sheets.spreadsheets.values.update({
             spreadsheetId,

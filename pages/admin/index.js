@@ -47,12 +47,12 @@ export default function AdminDashboard() {
         comments: '',
     });
 
-    const handleStatusUpdate = async (rowIndex, status) => {
+    const handleStatusUpdate = async (index, booking, status) => {
         if (!confirm(`Mark this booking as ${status}?`)) return;
 
-        // Optimistic Update
+        // Optimistic Update (using array index)
         const updatedBookings = [...bookings];
-        updatedBookings[rowIndex].status = status;
+        updatedBookings[index].status = status;
         setBookings(updatedBookings);
 
         try {
@@ -61,7 +61,8 @@ export default function AdminDashboard() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ rowIndex, status }),
+                // API Update (using Sheet Row Index)
+                body: JSON.stringify({ rowIndex: booking.rowIndex, status }),
             });
 
             if (!response.ok) {
@@ -76,12 +77,12 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleCancel = async (rowIndex) => {
+    const handleCancel = async (index, booking) => {
         if (!confirm('Are you sure you want to cancel this booking?')) return;
 
-        // Optimistic Update
+        // Optimistic Update (using array index)
         const updatedBookings = [...bookings];
-        updatedBookings[rowIndex].status = 'Cancelled';
+        updatedBookings[index].status = 'Cancelled';
         setBookings(updatedBookings);
 
         try {
@@ -90,7 +91,8 @@ export default function AdminDashboard() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ rowIndex }),
+                // API Update (using Sheet Row Index)
+                body: JSON.stringify({ rowIndex: booking.rowIndex }),
             });
 
             if (response.ok) {
@@ -106,12 +108,12 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleVerifyPayment = async (rowIndex, booking) => {
+    const handleVerifyPayment = async (index, booking) => {
         if (!confirm(`Verify payment for ${booking.name} (Txn: ${booking.transactionId})? This will confirm the booking.`)) return;
 
-        // Optimistic Update
+        // Optimistic Update (using array index)
         const updatedBookings = [...bookings];
-        updatedBookings[rowIndex].status = 'Reserved';
+        updatedBookings[index].status = 'Reserved';
         setBookings(updatedBookings);
 
         try {
@@ -120,7 +122,8 @@ export default function AdminDashboard() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ rowIndex, bookingDetails: booking }),
+                // API Update (using Sheet Row Index)
+                body: JSON.stringify({ rowIndex: booking.rowIndex, bookingDetails: booking }),
             });
 
             if (response.ok) {
@@ -316,7 +319,7 @@ export default function AdminDashboard() {
                                                     )}
                                                     {booking.status === 'Reserved' && (
                                                         <button
-                                                            onClick={() => handleStatusUpdate(index, 'Arrived')}
+                                                            onClick={() => handleStatusUpdate(index, booking, 'Arrived')}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                                                             title="Mark as Arrived"
                                                         >
@@ -325,7 +328,7 @@ export default function AdminDashboard() {
                                                     )}
                                                     {booking.status === 'Arrived' && (
                                                         <button
-                                                            onClick={() => handleStatusUpdate(index, 'Completed')}
+                                                            onClick={() => handleStatusUpdate(index, booking, 'Completed')}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                                                             title="Mark as Completed (Table Empty)"
                                                         >
@@ -334,7 +337,7 @@ export default function AdminDashboard() {
                                                     )}
                                                     {booking.status !== 'Cancelled' && booking.status !== 'Completed' && (
                                                         <button
-                                                            onClick={() => handleCancel(index)}
+                                                            onClick={() => handleCancel(index, booking)}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                                                             title="Cancel Booking"
                                                         >

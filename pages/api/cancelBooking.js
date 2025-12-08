@@ -29,9 +29,8 @@ export default async function handler(req, res) {
         const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
         // The status column is column K (11th column, index 10)
-        // Row index from client is 0-based index of the data array, which starts at row 2 in the sheet (row 1 is header)
-        // So actual sheet row number = rowIndex + 2
-        const sheetRowNumber = rowIndex + 2;
+        // Row index from client is the ACTUAL sheet row number
+        const sheetRowNumber = rowIndex;
 
         // 1. Fetch the row to get email and name
         const getRow = await sheets.spreadsheets.values.get({
@@ -45,8 +44,8 @@ export default async function handler(req, res) {
         const email = rowValues[3]; // Email is now at index 3
 
         // 2. Update Status to "Cancelled" in Column N (Index 13)
-        // Row index is passed from frontend (0-based from the array, so +2 for 1-based sheet index with header)
-        const sheetRowIndex = rowIndex + 2;
+        // Row index is passed from frontend
+        const sheetRowIndex = rowIndex;
 
         await sheets.spreadsheets.values.update({
             spreadsheetId,
