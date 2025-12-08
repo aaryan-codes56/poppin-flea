@@ -36,63 +36,61 @@ export default async function handler(req, res) {
         }
 
         // Filter out header row and invalid rows
-        const bookings = rows
-            .filter((row, index) => {
-                // Filter out if it's the header row (checking first column)
-                // The user's sheet seems to have '#Reference ID' or 'Ref ID'
-                const firstCol = row[0] ? String(row[0]).trim() : '';
-                if (firstCol === 'Ref ID' || firstCol === '#Reference ID' || firstCol === 'Reference ID') return false;
+        // 1. Map FIRST to preserve the original sheet row index
+        const mappedBookings = rows.map((row, index) => {
+            // Sheet rows are 1-indexed. 
+            // row[0] is the first row in the 'values' array.
+            // If we fetched 'Sheet1!A:N', row[0] corresponds to the first row of that range.
+            // Usually A1 is the first row. So index 0 -> Row 1.
+            const sheetRowIndex = index + 1;
 
-                // Filter out if Ref ID is missing or Name is empty
-                if (!row[0] || !row[1]) return false;
-                return true;
-            })
-            .map((row, index) => {
-                // Column Order: 
-                // 0: Ref ID, 1: Name, 2: Phone, 3: Email, 4: Area, 5: Date, 6: Time, 
-                // 7: Adults, 8: Children, 9: Comments, 10: Transaction ID, 11: UPI Name, 12: Action, 13: Status
-                return {
-                    refId: row[0] || 'N/A',
-                    name: row[1] || '',
-                    phone: row[2] || '',
-                    email: row[3] || '',
-                    area: row[4] || '',
-                    date: row[5] || '',
-                    timeSlot: row[6] || '',
-                    adults: row[7] || '1',
-                    children: row[8] || '0',
-                    comments: row[9] || '',
-                    transactionId: row[10] || '',
-                    upiName: row[11] || '',
-                    status: row[13] || 'Reserved', // Status is at index 13 (Column N)
-                    rowIndex: index + 1, // We can't rely on original index if we filter. 
-                    // But we need the SHEET row index for updates.
-                    // This is tricky. If we filter, 'index' in map is new index.
-                };
-            });
+            return {
+                refId: row[0] ? String(row[0]).trim() : 'N/A',
+                name: row[1] ? String(row[1]).trim() : '',
+                phone: row[2] || '',
+                email: row[3] || '',
+                area: row[4] || '',
+                date: row[5] || '',
+                timeSlot: row[6] || '',
+                adults: row[7] || '1',
+                children: row[8] || '0',
+                comments: row[9] || '',
+                transactionId: row[10] || '',
+                upiName: row[11] || '',
+                status: row[13] || 'Reserved', // Status is at index 13 (Column N)
+                rowIndex: sheetRowIndex, // CRITICAL: This must be the actual row number in the sheet
+            };
+        });
 
-        // We need to preserve the original row index for updates (cancel/confirm).
-        // Let's map FIRST, then filter.
-        const mappedBookings = rows.map((row, index) => ({
-            refId: row[0] || 'N/A',
-            name: row[1] || '',
-            phone: row[2] || '',
-            email: row[3] || '',
-            area: row[4] || '',
-            date: row[5] || '',
-            timeSlot: row[6] || '',
-            adults: row[7] || '1',
-            children: row[8] || '0',
-            comments: row[9] || '',
-            transactionId: row[10] || '',
-            upiName: row[11] || '',
-            status: row[13] || 'Reserved',
-            rowIndex: index, // 0-based index from the fetch result
-        }));
+        // 2. Filter AFTER mapping
+        const bookings = mappedBookings.filter(booking => {
+            const { refId, name, status } = booking;
 
-        const finalBookings = mappedBookings.filter(b => b.refId !== 'Ref ID' && b.refId !== 'N/A' && b.name.trim() !== '');
+            // Debug log for header detection
+            if (refId.includes('Ref') || name === 'Name') {
+                console.log(`Filtering row ${booking.rowIndex}: RefID="${refId}", Name="${name}"`);
+            }
 
-        res.status(200).json({ bookings: finalBookings });
+            // Aggressive Header Check
+            if (
+                refId === 'Ref ID' ||
+                refId === '#Reference ID' ||
+                refId.startsWith('#Ref') ||
+                name === 'Name' ||
+                status === 'Status'
+            ) {
+                return false;
+            }
+
+            // Invalid Data Check
+            if (refId === 'N/A' || !name) {
+                return false;
+            }
+
+            return true;
+        });
+
+        res.status(200).json({ bookings });
     } catch (error) {
         console.error('Google Sheets API Error:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });

@@ -275,7 +275,6 @@ export default function AdminDashboard() {
                                         <th>Children</th>
                                         <th>Payment Info</th>
                                         <th>Comments</th>
-                                        <th>Action</th>
                                         <th>Status</th>
                                         <th>Manage</th>
                                     </tr>
@@ -299,7 +298,6 @@ export default function AdminDashboard() {
                                                 </div>
                                             </td>
                                             <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={booking.comments}>{booking.comments}</td>
-                                            <td>-</td> {/* Placeholder for Action column in sheet */}
                                             <td>
                                                 <span className={`${styles.badge} ${styles[booking.status.toLowerCase().replace(' ', '-')]}`}>
                                                     {booking.status}
