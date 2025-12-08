@@ -112,8 +112,140 @@
     color: #6b7280;
 }
 
+.imageCard {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    aspect-ratio: 4/3;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.imageCard:hover .image {
+    transform: scale(1.05);
+}
+
+.imageOverlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    padding: 1.5rem;
+    color: white;
+}
+
+.imageOverlay h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--primary-yellow);
+}
+
+.imageOverlay p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.venueContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.venueInfo h3 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.address {
+    font-size: 1.1rem;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.landmark {
+    color: var(--primary-yellow);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    background: black;
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+}
+
+.venueDescription {
+    color: #6b7280;
+    margin-bottom: 2rem;
+    line-height: 1.8;
+}
+
+.venueImageWrapper {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.venueImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.socials {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.instaLink {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #E1306C;
+    /* Instagram Pink color */
+    text-decoration: none;
+}
+
+.instaLink:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 768px) {
     .title {
         font-size: 2.5rem;
+    }
+
+    .hero {
+        padding: 4rem 0;
+    }
+
+    .eventCard {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .date {
+        width: 100%;
+    }
+
+    .venueContainer {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .venueInfo {
+        text-align: center;
     }
 }

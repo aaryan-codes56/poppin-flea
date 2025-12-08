@@ -80,10 +80,67 @@ export default function Home() {
                 <span className={styles.month}>DEC</span>
               </div>
               <div className={styles.details}>
-                <h3>Boxing Day Market</h3>
+                <h3>Post Christmas Fun</h3>
                 <p>Cafe The Cartel, Vidyapati Marg, Patna</p>
                 <p className={styles.smallText}>Near City Center Mall, 4:00 PM - 9:00 PM</p>
                 <Link href="/book" className={styles.link}>Book Now</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* Past Events Section */}
+        <section className={styles.section}>
+          <div className="container">
+            <h2 className={styles.sectionTitle}>Past Events</h2>
+            <div className={styles.grid}>
+              <div className={styles.imageCard}>
+                <img src="https://placehold.co/600x400/FFE103/000?text=Past+Event+1" alt="Past Event 1" className={styles.image} />
+                <div className={styles.imageOverlay}>
+                  <h3>Summer Vibes</h3>
+                  <p>June 2025</p>
+                </div>
+              </div>
+              <div className={styles.imageCard}>
+                <img src="https://placehold.co/600x400/000/FFE103?text=Past+Event+2" alt="Past Event 2" className={styles.image} />
+                <div className={styles.imageOverlay}>
+                  <h3>Winter Wonderland</h3>
+                  <p>Dec 2024</p>
+                </div>
+              </div>
+              <div className={styles.imageCard}>
+                <img src="https://placehold.co/600x400/FFE103/000?text=Past+Event+3" alt="Past Event 3" className={styles.image} />
+                <div className={styles.imageOverlay}>
+                  <h3>Spring Fling</h3>
+                  <p>March 2025</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Venue Details Section */}
+        <section className={`${styles.section} ${styles.bgGray}`}>
+          <div className="container">
+            <h2 className={styles.sectionTitle}>The Venue</h2>
+            <div className={styles.venueContainer}>
+              <div className={styles.venueInfo}>
+                <h3>Cafe The Cartel</h3>
+                <p className={styles.address}>Vidyapati Marg, beside Vidyapati Bhawan,<br />Lodipur, Patna, Bihar 800001</p>
+                <p className={styles.landmark}>Near City Center Mall</p>
+                <p className={styles.venueDescription}>
+                  Experience the perfect blend of cozy ambiance and vibrant energy.
+                  Our venue offers spacious indoor seating, a breezy outdoor area,
+                  and a dedicated smoking zone in the library.
+                </p>
+                <div className={styles.socials}>
+                  <p>Follow us on Instagram:</p>
+                  <a href="https://instagram.com/poppinflea" target="_blank" rel="noopener noreferrer" className={styles.instaLink}>
+                    @poppinflea
+                  </a>
+                </div>
+              </div>
+              <div className={styles.venueImageWrapper}>
+                <img src="https://placehold.co/800x600/000/FFF?text=Cafe+The+Cartel" alt="Venue" className={styles.venueImage} />
               </div>
             </div>
           </div>

@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId,
-            range: 'Sheet1!A:K', // Fetching columns A to K (including Comments and Status)
+            range: 'Sheet1!A:L', // Fetching columns A to L (including Ref ID)
         });
 
         const rows = response.data.values;
@@ -50,6 +50,7 @@ export default async function handler(req, res) {
             comments: row[8] || '',
             timestamp: row[9] || '',
             status: row[10] || 'Reserved',
+            refId: row[11] || '',
         }));
 
         res.status(200).json({ bookings });

@@ -47,13 +47,19 @@ export default async function handler(req, res) {
         }
 
         // 2. If limit not reached, append new booking
+        // Generate Reference ID
+        // rows.length includes header. If 1 row (header), next is 2. Ref ID should be 001.
+        // If rows is empty (shouldn't happen if header exists), default to 1.
+        const nextRowIndex = rows.length ? rows.length : 1;
+        const refId = String(nextRowIndex).padStart(3, '0');
+
         const response = await sheets.spreadsheets.values.append({
             spreadsheetId,
-            range: 'Sheet1!A:K',
+            range: 'Sheet1!A:L',
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [
-                    [name, phone, email, area, date, timeSlot, adults, children, comments || '', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }), 'Reserved'],
+                    [name, phone, email, area, date, timeSlot, adults, children, comments || '', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }), 'Reserved', refId],
                 ],
             },
         });
@@ -70,14 +76,17 @@ export default async function handler(req, res) {
                 });
 
                 const mailOptions = {
-                    from: `"PoppinFlea" < ${process.env.EMAIL_USER}> `,
+                    from: `"PoppinFlea" <${process.env.EMAIL_USER}>`,
                     to: email,
-                    subject: 'Booking Confirmation - PoppinFlea',
+                    subject: `Booking Confirmed - #${refId} - PoppinFlea`,
                     html: `
-    < div style = "font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;" >
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                             <h2 style="color: #FFE103; text-shadow: 1px 1px 0 #000;">Booking Confirmed! 🎉</h2>
                             <p>Hi ${name},</p>
                             <p>Thanks for booking a table at PoppinFlea! Here are your details:</p>
+                            <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                <p style="margin: 0; font-size: 1.2rem; font-weight: bold;">Reference ID: #${refId}</p>
+                            </div>
                             <ul style="list-style: none; padding: 0;">
                                 <li><strong>Date:</strong> ${date}</li>
                                 <li><strong>Time:</strong> ${timeSlot}</li>
@@ -87,10 +96,9 @@ export default async function handler(req, res) {
                             </ul>
                             <p>We look forward to seeing you!</p>
                             <p style="font-size: 0.8rem; color: #888;">If you need to cancel, please contact us.</p>
-                        </div >
-    `,
+                        </div>
+                    `,
                 };
-
                 await transporter.sendMail(mailOptions);
             } catch (emailError) {
                 console.error('Email sending failed:', emailError);
