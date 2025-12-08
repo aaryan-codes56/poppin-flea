@@ -23,7 +23,7 @@ export default function Home() {
               <Link href="/book" className="btn-primary">
                 Book a Table →
               </Link>
-              <a href="https://forms.gle/YOUR_GOOGLE_FORM_ID" target="_blank" rel="noopener noreferrer" className={`${styles.ctaButton} ${styles.secondaryCta}`}>
+              <a href="https://forms.gle/Q5UDMTpdoBVqsAM28" target="_blank" rel="noopener noreferrer" className={`${styles.ctaButton} ${styles.secondaryCta}`}>
                 Register for Open Mic
               </a>
             </div>
