@@ -47,9 +47,6 @@ export default async function handler(req, res) {
         }
 
         // 2. If limit not reached, append new booking
-        // Generate Reference ID
-        // rows.length includes header. If 1 row (header), next is 2. Ref ID should be 001.
-        // If rows is empty (shouldn't happen if header exists), default to 1.
         const nextRowIndex = rows.length ? rows.length : 1;
         const refId = String(nextRowIndex).padStart(3, '0');
 
@@ -57,9 +54,10 @@ export default async function handler(req, res) {
             spreadsheetId,
             range: 'Sheet1!A:L',
             valueInputOption: 'USER_ENTERED',
+            includeValuesInResponse: true,
             requestBody: {
                 values: [
-                    [name, phone, email, area, date, timeSlot, adults, children, comments || '', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }), 'Reserved', refId],
+                    [refId, name, phone, email, area, date, timeSlot, adults, children, comments || '', '', 'Reserved'],
                 ],
             },
         });
@@ -102,7 +100,6 @@ export default async function handler(req, res) {
                 await transporter.sendMail(mailOptions);
             } catch (emailError) {
                 console.error('Email sending failed:', emailError);
-                // Don't fail the request if email fails, just log it
             }
         } else {
             console.log('Email credentials not found. Skipping email confirmation.');

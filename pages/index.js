@@ -19,9 +19,14 @@ export default function Home() {
           <div className="container">
             <h1 className={styles.title}>Book Your Table at <span className={styles.highlight}>PoppinFlea</span></h1>
             <p className={styles.subtitle}>Reserve your stall or booth instantly. Join the most vibrant flea market in town!</p>
-            <Link href="/book" className="btn-primary">
-              Book a Table →
-            </Link>
+            <div className={styles.ctaGroup}>
+              <Link href="/book" className="btn-primary">
+                Book a Table →
+              </Link>
+              <a href="https://forms.gle/YOUR_GOOGLE_FORM_ID" target="_blank" rel="noopener noreferrer" className={`${styles.ctaButton} ${styles.secondaryCta}`}>
+                Register for Open Mic
+              </a>
+            </div>
           </div>
         </section>
 

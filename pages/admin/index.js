@@ -46,6 +46,11 @@ export default function AdminDashboard() {
     const handleStatusUpdate = async (rowIndex, status) => {
         if (!confirm(`Mark this booking as ${status}?`)) return;
 
+        // Optimistic Update
+        const updatedBookings = [...bookings];
+        updatedBookings[rowIndex].status = status;
+        setBookings(updatedBookings);
+
         try {
             const response = await fetch('/api/updateBookingStatus', {
                 method: 'POST',
@@ -55,20 +60,25 @@ export default function AdminDashboard() {
                 body: JSON.stringify({ rowIndex, status }),
             });
 
-            if (response.ok) {
-                // Refresh bookings
-                fetchBookings();
-            } else {
+            if (!response.ok) {
+                // Revert on failure
                 alert('Failed to update status');
+                fetchBookings();
             }
         } catch (error) {
             console.error('Error updating status:', error);
             alert('Error updating status');
+            fetchBookings();
         }
     };
 
     const handleCancel = async (rowIndex) => {
         if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+        // Optimistic Update
+        const updatedBookings = [...bookings];
+        updatedBookings[rowIndex].status = 'Cancelled';
+        setBookings(updatedBookings);
 
         try {
             const response = await fetch('/api/cancelBooking', {
@@ -81,14 +91,14 @@ export default function AdminDashboard() {
 
             if (response.ok) {
                 alert('Booking cancelled successfully');
-                // Refresh bookings
-                fetchBookings();
             } else {
                 alert('Failed to cancel booking');
+                fetchBookings();
             }
         } catch (error) {
             console.error('Error cancelling booking:', error);
             alert('Error cancelling booking');
+            fetchBookings();
         }
     };
 
@@ -114,7 +124,7 @@ export default function AdminDashboard() {
             const data = await response.json();
 
             if (response.ok) {
-                alert(`Booking Successful! Ref ID: #${data.data.updates.updatedData.values[0][11] || 'N/A'}`); // Try to get Ref ID if possible, or just success
+                alert(`Booking Successful! Ref ID: #${data.data.updates.updatedData.values[0][0] || 'N/A'}`);
                 setShowForm(false);
                 setFormData({
                     name: '',
@@ -193,7 +203,6 @@ export default function AdminDashboard() {
                                 <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
                                 <select name="area" value={formData.area} onChange={handleInputChange} style={{ padding: '0.5rem' }}>
                                     <option value="Indoor">Indoor</option>
-                                    <option value="Outdoor">Outdoor</option>
                                     <option value="Library (Smoking)">Library (Smoking)</option>
                                 </select>
                                 <select name="date" value={formData.date} onChange={handleInputChange} style={{ padding: '0.5rem' }}>
@@ -224,14 +233,16 @@ export default function AdminDashboard() {
                                         <th>Ref ID</th>
                                         <th>Name</th>
                                         <th>Phone</th>
+                                        <th>Email</th>
                                         <th>Area</th>
                                         <th>Date</th>
                                         <th>Time</th>
                                         <th>Adults</th>
                                         <th>Children</th>
                                         <th>Comments</th>
-                                        <th>Status</th>
                                         <th>Action</th>
+                                        <th>Status</th>
+                                        <th>Manage</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -240,12 +251,14 @@ export default function AdminDashboard() {
                                             <td><strong>#{booking.refId}</strong></td>
                                             <td>{booking.name}</td>
                                             <td>{booking.phone}</td>
+                                            <td>{booking.email}</td>
                                             <td>{booking.area}</td>
                                             <td>{booking.date}</td>
                                             <td>{booking.timeSlot}</td>
                                             <td>{booking.adults}</td>
                                             <td>{booking.children}</td>
-                                            <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={booking.comments}>{booking.comments}</td>
+                                            <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={booking.comments}>{booking.comments}</td>
+                                            <td>-</td> {/* Placeholder for Action column in sheet */}
                                             <td>
                                                 <span className={`${styles.badge} ${styles[booking.status.toLowerCase()]}`}>
                                                     {booking.status}
@@ -255,7 +268,7 @@ export default function AdminDashboard() {
                                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                     {booking.status === 'Reserved' && (
                                                         <button
-                                                            onClick={() => handleStatusUpdate(booking.id, 'Arrived')}
+                                                            onClick={() => handleStatusUpdate(index, 'Arrived')}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                                                             title="Mark as Arrived"
                                                         >
@@ -264,7 +277,7 @@ export default function AdminDashboard() {
                                                     )}
                                                     {booking.status === 'Arrived' && (
                                                         <button
-                                                            onClick={() => handleStatusUpdate(booking.id, 'Completed')}
+                                                            onClick={() => handleStatusUpdate(index, 'Completed')}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                                                             title="Mark as Completed (Table Empty)"
                                                         >
@@ -273,7 +286,7 @@ export default function AdminDashboard() {
                                                     )}
                                                     {booking.status !== 'Cancelled' && booking.status !== 'Completed' && (
                                                         <button
-                                                            onClick={() => handleCancel(booking.id)}
+                                                            onClick={() => handleCancel(index)}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
                                                             title="Cancel Booking"
                                                         >
@@ -286,15 +299,15 @@ export default function AdminDashboard() {
                                     ))}
                                     {bookings.length === 0 && (
                                         <tr>
-                                            <td colSpan="11" style={{ textAlign: 'center' }}>No bookings found.</td>
+                                            <td colSpan="13" style={{ textAlign: 'center' }}>No bookings found.</td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
                         )}
                     </div>
-                </div>
-            </main>
+                </div >
+            </main >
         </>
     );
 }

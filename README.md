@@ -1,40 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# PoppinFlea - Table Booking System 🎟️
 
-## Getting Started
+A modern, responsive table booking and reservation management system built for **PoppinFlea** events. This application allows users to book tables for specific dates and times, and provides admins with a dashboard to manage these bookings in real-time using Google Sheets as the backend database.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 🌟 User Features
+*   **Event Information**: Home page displaying event dates, venue details (Cafe The Cartel), and past event highlights.
+*   **Table Booking**: Easy-to-use form to book tables for Dec 24, 25, and 26.
+*   **Real-time Availability**: Automatically limits bookings to 15 per day.
+*   **Email Confirmation**: Users receive an instant confirmation email with a unique **Reference ID**.
+*   **Open Mic Registration**: Direct link to register for Open Mic events.
+*   **Responsive Design**: Optimized for mobile and desktop devices.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🛡️ Admin Features
+*   **Dashboard**: Secure admin area to view all bookings in a tabular format.
+*   **Status Management**: Mark bookings as **Arrived**, **Completed** (Empty Table), or **Cancelled**.
+*   **On-Spot Registration**: Admin form to add walk-in guests directly.
+*   **Optimistic UI**: Instant feedback on button clicks for a smooth experience.
+*   **Cancellation**: Cancel bookings with one click (triggers an email notification to the user).
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+*   **Framework**: [Next.js](https://nextjs.org/) (React)
+*   **Styling**: CSS Modules (Vanilla CSS)
+*   **Database**: Google Sheets (via Google Sheets API v4)
+*   **Email Service**: Nodemailer (Gmail SMTP)
+*   **Authentication**: Simple local storage check (Admin)
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## ⚙️ Setup & Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Clone the repository**:
+    ```bash
+    git clone <repository-url>
+    cd poppin
+    ```
 
-## Learn More
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+3.  **Environment Variables**:
+    Create a `.env.local` file in the root directory and add the following:
+    ```env
+    GOOGLE_SHEETS_CLIENT_EMAIL=your-service-account-email
+    GOOGLE_SHEETS_PRIVATE_KEY="your-private-key"
+    GOOGLE_SHEET_ID=your-sheet-id
+    EMAIL_USER=your-gmail-address
+    EMAIL_PASS=your-gmail-app-password
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+4.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5.  **Open the app**:
+    Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deploy on Vercel
+## 📂 Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+*   `pages/`
+    *   `index.js`: Home page with event and venue info.
+    *   `book.js`: Booking form page.
+    *   `admin/`: Admin dashboard and login.
+    *   `api/`: Server-side API routes for booking and sheet management.
+*   `styles/`: CSS modules for component-level styling.
+*   `components/`: Reusable UI components (Navbar, etc.).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+## 📝 Google Sheets Structure
+
+The system expects a Google Sheet with the following columns (in order):
+`Ref ID | Name | Phone | Email | Area | Date | Time | Adults | Children | Comments | Action | Status`
+
+---
+Built with ❤️ for PoppinFlea.

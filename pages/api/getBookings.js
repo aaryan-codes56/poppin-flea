@@ -38,19 +38,20 @@ export default async function handler(req, res) {
         // Assuming first row is header
         // const headers = rows[0];
         const bookings = rows.slice(1).map((row, index) => ({
-            id: index, // Simple ID based on index
-            name: row[0] || '',
-            phone: row[1] || '',
-            email: row[2] || '',
-            area: row[3] || '',
-            date: row[4] || '',
-            timeSlot: row[5] || '',
-            adults: row[6] || '',
-            children: row[7] || '',
-            comments: row[8] || '',
-            timestamp: row[9] || '',
-            status: row[10] || 'Reserved',
-            refId: row[11] || '',
+            id: index, // Using index as a temporary ID for frontend keys
+            refId: row[0] || '',
+            name: row[1] || '',
+            phone: row[2] || '',
+            email: row[3] || '',
+            area: row[4] || '',
+            date: row[5] || '',
+            timeSlot: row[6] || '',
+            adults: row[7] || '',
+            children: row[8] || '',
+            comments: row[9] || '',
+            // Action column at index 10 is skipped
+            status: row[11] || 'Reserved',
+            timestamp: row[12] || '', // Timestamp is now appended at the end, index 12
         }));
 
         res.status(200).json({ bookings });

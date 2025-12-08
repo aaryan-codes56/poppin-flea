@@ -157,7 +157,6 @@ export default function Book() {
                                         >
                                             <option value="Library (Smoking)">Library (Smoking)</option>
                                             <option value="Indoor">Indoor</option>
-                                            <option value="Outdoor">Outdoor</option>
                                         </select>
                                     </div>
                                     <div className={styles.field}>

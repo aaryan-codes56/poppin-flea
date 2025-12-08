@@ -40,15 +40,13 @@ export default async function handler(req, res) {
         });
 
         const rowValues = getRow.data.values ? getRow.data.values[0] : [];
-        const name = rowValues[0];
-        const email = rowValues[2];
-        const refId = rowValues[11]; // Assuming Ref ID is in column L (index 11)
+        const refId = rowValues[0]; // Ref ID is now at index 0
+        const name = rowValues[1];  // Name is now at index 1
+        const email = rowValues[3]; // Email is now at index 3
 
         // 2. Update status to Cancelled
-        // Status is in Column K (index 10)
-        // But wait, if we added Ref ID in L, Status is still K.
-        // So we update K.
-        const range = `Sheet1!K${sheetRowNumber}`;
+        // Status is in Column L (index 11)
+        const range = `Sheet1!L${sheetRowNumber}`;
 
         await sheets.spreadsheets.values.update({
             spreadsheetId,
