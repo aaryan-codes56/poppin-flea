@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { name, phone, email, area, date, timeSlot, adults, children, comments } = req.body;
+        const { name, phone, email, area, date, timeSlot, adults, children, comments, transactionId, upiName } = req.body;
 
         // Basic validation
         if (!name || !phone || !email || !area || !date || !timeSlot || !adults) {
@@ -37,8 +37,7 @@ export default async function handler(req, res) {
 
         const rows = getRows.data.values || [];
         // Filter rows that match the requested date
-        // Assuming Date is in column index 4 (E) based on previous structure: Name, Phone, Email, Area, Date...
-        // Let's verify structure: [name, phone, email, area, date, timeSlot, adults, children, comments, timestamp, status]
+        // Date is in column index 4 (E)
         const dateColumnIndex = 4;
         const bookingsForDate = rows.filter(row => row[dateColumnIndex] === date);
 
@@ -49,20 +48,22 @@ export default async function handler(req, res) {
         // 2. If limit not reached, append new booking
         const nextRowIndex = rows.length ? rows.length : 1;
         const refId = String(nextRowIndex).padStart(3, '0');
+        const status = 'Pending Verification';
 
+        // New Column Order: Ref ID | Name | Phone | Email | Area | Date | Time | Adults | Children | Comments | Transaction ID | UPI Name | Action | Status
         const response = await sheets.spreadsheets.values.append({
             spreadsheetId,
-            range: 'Sheet1!A:L',
+            range: 'Sheet1!A:N', // Extended range to N
             valueInputOption: 'USER_ENTERED',
             includeValuesInResponse: true,
             requestBody: {
                 values: [
-                    [refId, name, phone, email, area, date, timeSlot, adults, children, comments || '', '', 'Reserved'],
+                    [refId, name, phone, email, area, date, timeSlot, adults, children, comments || '', transactionId || '', upiName || '', '', status],
                 ],
             },
         });
 
-        // 3. Send Confirmation Email
+        // 3. Send "Booking Received" Email
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             try {
                 const transporter = nodemailer.createTransport({
@@ -76,24 +77,26 @@ export default async function handler(req, res) {
                 const mailOptions = {
                     from: `"PoppinFlea" <${process.env.EMAIL_USER}>`,
                     to: email,
-                    subject: `Booking Confirmed - #${refId} - PoppinFlea`,
+                    subject: `Booking Received - #${refId} - PoppinFlea`,
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                            <h2 style="color: #FFE103; text-shadow: 1px 1px 0 #000;">Booking Confirmed! 🎉</h2>
+                            <h2 style="color: #FFE103; text-shadow: 1px 1px 0 #000;">Booking Request Received! ⏳</h2>
                             <p>Hi ${name},</p>
-                            <p>Thanks for booking a table at PoppinFlea! Here are your details:</p>
+                            <p>We have received your booking request and payment details.</p>
                             <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
                                 <p style="margin: 0; font-size: 1.2rem; font-weight: bold;">Reference ID: #${refId}</p>
+                                <p style="margin: 5px 0 0 0; color: #666;">Status: <strong>Pending Verification</strong></p>
                             </div>
+                            <p>We will verify your payment (Transaction ID: ${transactionId}) within <strong>12-15 hours</strong>.</p>
+                            <p>Once verified, you will receive a final confirmation email.</p>
+                            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                             <ul style="list-style: none; padding: 0;">
                                 <li><strong>Date:</strong> ${date}</li>
                                 <li><strong>Time:</strong> ${timeSlot}</li>
                                 <li><strong>Area:</strong> ${area}</li>
                                 <li><strong>Guests:</strong> ${adults} Adults, ${children} Children</li>
-                                <li><strong>Venue:</strong> Cafe The Cartel, Vidyapati Marg, Patna</li>
                             </ul>
-                            <p>We look forward to seeing you!</p>
-                            <p style="font-size: 0.8rem; color: #888;">If you need to cancel, please contact us.</p>
+                            <p style="font-size: 0.8rem; color: #888;">If you have any questions, please reply to this email.</p>
                         </div>
                     `,
                 };

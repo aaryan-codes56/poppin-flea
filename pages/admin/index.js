@@ -102,6 +102,36 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleVerifyPayment = async (rowIndex, booking) => {
+        if (!confirm(`Verify payment for ${booking.name} (Txn: ${booking.transactionId})? This will confirm the booking.`)) return;
+
+        // Optimistic Update
+        const updatedBookings = [...bookings];
+        updatedBookings[rowIndex].status = 'Reserved';
+        setBookings(updatedBookings);
+
+        try {
+            const response = await fetch('/api/confirmPayment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ rowIndex, bookingDetails: booking }),
+            });
+
+            if (response.ok) {
+                alert('Payment verified and booking confirmed!');
+            } else {
+                alert('Failed to verify payment');
+                fetchBookings();
+            }
+        } catch (error) {
+            console.error('Error verifying payment:', error);
+            alert('Error verifying payment');
+            fetchBookings();
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -239,6 +269,7 @@ export default function AdminDashboard() {
                                         <th>Time</th>
                                         <th>Adults</th>
                                         <th>Children</th>
+                                        <th>Payment Info</th>
                                         <th>Comments</th>
                                         <th>Action</th>
                                         <th>Status</th>
@@ -257,15 +288,30 @@ export default function AdminDashboard() {
                                             <td>{booking.timeSlot}</td>
                                             <td>{booking.adults}</td>
                                             <td>{booking.children}</td>
+                                            <td>
+                                                <div style={{ fontSize: '0.8rem' }}>
+                                                    <div><strong>Txn:</strong> {booking.transactionId || 'N/A'}</div>
+                                                    <div><strong>UPI:</strong> {booking.upiName || 'N/A'}</div>
+                                                </div>
+                                            </td>
                                             <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={booking.comments}>{booking.comments}</td>
                                             <td>-</td> {/* Placeholder for Action column in sheet */}
                                             <td>
-                                                <span className={`${styles.badge} ${styles[booking.status.toLowerCase()]}`}>
+                                                <span className={`${styles.badge} ${styles[booking.status.toLowerCase().replace(' ', '-')]}`}>
                                                     {booking.status}
                                                 </span>
                                             </td>
                                             <td>
-                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+                                                    {booking.status === 'Pending Verification' && (
+                                                        <button
+                                                            onClick={() => handleVerifyPayment(index, booking)}
+                                                            style={{ padding: '0.25rem 0.5rem', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
+                                                            title="Verify Payment & Confirm"
+                                                        >
+                                                            Verify Payment
+                                                        </button>
+                                                    )}
                                                     {booking.status === 'Reserved' && (
                                                         <button
                                                             onClick={() => handleStatusUpdate(index, 'Arrived')}
@@ -299,7 +345,7 @@ export default function AdminDashboard() {
                                     ))}
                                     {bookings.length === 0 && (
                                         <tr>
-                                            <td colSpan="13" style={{ textAlign: 'center' }}>No bookings found.</td>
+                                            <td colSpan="14" style={{ textAlign: 'center' }}>No bookings found.</td>
                                         </tr>
                                     )}
                                 </tbody>

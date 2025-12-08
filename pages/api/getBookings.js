@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId,
-            range: 'Sheet1!A:L', // Fetching columns A to L (including Ref ID)
+            range: 'Sheet1!A:N', // Fetching columns A to N (including Status)
         });
 
         const rows = response.data.values;
@@ -35,24 +35,30 @@ export default async function handler(req, res) {
             return res.status(200).json({ bookings: [] });
         }
 
-        // Assuming first row is header
-        // const headers = rows[0];
-        const bookings = rows.slice(1).map((row, index) => ({
-            id: index, // Using index as a temporary ID for frontend keys
-            refId: row[0] || '',
-            name: row[1] || '',
-            phone: row[2] || '',
-            email: row[3] || '',
-            area: row[4] || '',
-            date: row[5] || '',
-            timeSlot: row[6] || '',
-            adults: row[7] || '',
-            children: row[8] || '',
-            comments: row[9] || '',
-            // Action column at index 10 is skipped
-            status: row[11] || 'Reserved',
-            timestamp: row[12] || '', // Timestamp is now appended at the end, index 12
-        }));
+        // Skip the first row (header) and filter out invalid rows
+        const bookings = rows.slice(1)
+            .map((row, index) => {
+                // Column Order: 
+                // 0: Ref ID, 1: Name, 2: Phone, 3: Email, 4: Area, 5: Date, 6: Time, 
+                // 7: Adults, 8: Children, 9: Comments, 10: Transaction ID, 11: UPI Name, 12: Action, 13: Status
+                return {
+                    refId: row[0] || 'N/A',
+                    name: row[1] || '',
+                    phone: row[2] || '',
+                    email: row[3] || '',
+                    area: row[4] || '',
+                    date: row[5] || '',
+                    timeSlot: row[6] || '',
+                    adults: row[7] || '1',
+                    children: row[8] || '0',
+                    comments: row[9] || '',
+                    transactionId: row[10] || '',
+                    upiName: row[11] || '',
+                    status: row[13] || 'Reserved', // Status is at index 13 (Column N)
+                    rowIndex: index + 1, // 0-based index + 1 for header
+                };
+            })
+            .filter(booking => booking.refId !== 'N/A' && booking.name.trim() !== '');
 
         res.status(200).json({ bookings });
     } catch (error) {

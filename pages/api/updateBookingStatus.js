@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         // Row index from client is 0-based index of the data array, which starts at row 2 in the sheet (row 1 is header)
         // So actual sheet row number = rowIndex + 2
         const sheetRowNumber = rowIndex + 2;
-        const range = `Sheet1!L${sheetRowNumber}`;
+        const range = `Sheet1!N${sheetRowNumber}`; // Column N is Status
 
         await sheets.spreadsheets.values.update({
             spreadsheetId,
