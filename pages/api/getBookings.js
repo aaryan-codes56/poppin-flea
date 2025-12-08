@@ -35,8 +35,15 @@ export default async function handler(req, res) {
             return res.status(200).json({ bookings: [] });
         }
 
-        // Skip the first row (header) and filter out invalid rows
-        const bookings = rows.slice(1)
+        // Filter out header row and invalid rows
+        const bookings = rows
+            .filter((row, index) => {
+                // Filter out if it's the header row (checking first column)
+                if (row[0] === 'Ref ID') return false;
+                // Filter out if Ref ID is missing or Name is empty
+                if (!row[0] || !row[1]) return false;
+                return true;
+            })
             .map((row, index) => {
                 // Column Order: 
                 // 0: Ref ID, 1: Name, 2: Phone, 3: Email, 4: Area, 5: Date, 6: Time, 
@@ -55,12 +62,34 @@ export default async function handler(req, res) {
                     transactionId: row[10] || '',
                     upiName: row[11] || '',
                     status: row[13] || 'Reserved', // Status is at index 13 (Column N)
-                    rowIndex: index + 1, // 0-based index + 1 for header
+                    rowIndex: index + 1, // We can't rely on original index if we filter. 
+                    // But we need the SHEET row index for updates.
+                    // This is tricky. If we filter, 'index' in map is new index.
                 };
-            })
-            .filter(booking => booking.refId !== 'N/A' && booking.name.trim() !== '');
+            });
 
-        res.status(200).json({ bookings });
+        // We need to preserve the original row index for updates (cancel/confirm).
+        // Let's map FIRST, then filter.
+        const mappedBookings = rows.map((row, index) => ({
+            refId: row[0] || 'N/A',
+            name: row[1] || '',
+            phone: row[2] || '',
+            email: row[3] || '',
+            area: row[4] || '',
+            date: row[5] || '',
+            timeSlot: row[6] || '',
+            adults: row[7] || '1',
+            children: row[8] || '0',
+            comments: row[9] || '',
+            transactionId: row[10] || '',
+            upiName: row[11] || '',
+            status: row[13] || 'Reserved',
+            rowIndex: index, // 0-based index from the fetch result
+        }));
+
+        const finalBookings = mappedBookings.filter(b => b.refId !== 'Ref ID' && b.refId !== 'N/A' && b.name.trim() !== '');
+
+        res.status(200).json({ bookings: finalBookings });
     } catch (error) {
         console.error('Google Sheets API Error:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
