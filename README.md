@@ -27,36 +27,6 @@ A modern, responsive table booking and reservation management system built for *
 *   **Email Service**: Nodemailer (Gmail SMTP)
 *   **Authentication**: Simple local storage check (Admin)
 
-## ⚙️ Setup & Installation
-
-1.  **Clone the repository**:
-    ```bash
-    git clone <repository-url>
-    cd poppin
-    ```
-
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-3.  **Environment Variables**:
-    Create a `.env.local` file in the root directory and add the following:
-    ```env
-    GOOGLE_SHEETS_CLIENT_EMAIL=your-service-account-email
-    GOOGLE_SHEETS_PRIVATE_KEY="your-private-key"
-    GOOGLE_SHEET_ID=your-sheet-id
-    EMAIL_USER=your-gmail-address
-    EMAIL_PASS=your-gmail-app-password
-    ```
-
-4.  **Run the development server**:
-    ```bash
-    npm run dev
-    ```
-
-5.  **Open the app**:
-    Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📂 Project Structure
 
