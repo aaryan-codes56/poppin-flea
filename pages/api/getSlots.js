@@ -25,18 +25,25 @@ export default async function handler(req, res) {
 
         const getRows = await sheets.spreadsheets.values.get({
             spreadsheetId,
-            range: 'Sheet1!A:G', // Need columns up to G (TimeSlot is F, Area is E)
+            range: 'Sheet1!A:N', // Fetch all columns including Status (N)
         });
 
         const rows = getRows.data.values || [];
 
         // Column Indices (0-based)
-        // 4: Area, 5: Date, 6: TimeSlot
+        // 4: Area, 5: Date, 6: TimeSlot, 13: Status
         const AREA_COL = 4;
         const DATE_COL = 5;
         const TIME_COL = 6;
+        const STATUS_COL = 13;
 
-        const bookingsForDate = rows.filter(row => row[DATE_COL] === date);
+        // Only count CONFIRMED bookings (not pending verification)
+        const confirmedStatuses = ['Reserved', 'Confirmed', 'Guest Arrived', 'Arrived'];
+
+        const bookingsForDate = rows.filter(row =>
+            row[DATE_COL] === date &&
+            confirmedStatuses.includes(row[STATUS_COL])
+        );
 
         const timeSlots = ["16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
         const areas = [

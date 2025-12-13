@@ -186,7 +186,12 @@ export default function Book() {
                                 <div className={styles.grid}>
                                     <div className={styles.field}>
                                         <label htmlFor="date">Date</label>
-                                        <input type="date" id="date" name="date" required min="2025-12-24" max="2025-12-26" value={formData.date} onChange={handleChange} />
+                                        <select id="date" name="date" required value={formData.date} onChange={handleChange}>
+                                            <option value="">Select a date</option>
+                                            <option value="2025-12-24">Dec 24 (Wed) - Christmas Eve</option>
+                                            <option value="2025-12-25">Dec 25 (Thu) - Christmas Day</option>
+                                            <option value="2025-12-26">Dec 26 (Fri) - Post Christmas</option>
+                                        </select>
                                     </div>
                                     <div className={styles.field}>
                                         <label htmlFor="area">Select Area</label>
@@ -250,8 +255,8 @@ export default function Book() {
                                 </div>
 
                                 <div className={styles.field}>
-                                    <label htmlFor="comments">Special Requests / Comments</label>
-                                    <textarea id="comments" name="comments" rows="3" value={formData.comments} onChange={handleChange} placeholder="Any dietary restrictions or special requests?" style={{ padding: '0.75rem', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius-lg)', fontFamily: 'inherit', fontSize: '1rem', resize: 'vertical' }} />
+                                    <label htmlFor="comments">Special Requests</label>
+                                    <textarea id="comments" name="comments" rows="3" value={formData.comments} onChange={handleChange} placeholder="Any special requests?" style={{ padding: '0.75rem', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius-lg)', fontFamily: 'inherit', fontSize: '1rem', resize: 'vertical' }} />
                                 </div>
 
                                 {status === 'error' && <p className={styles.error}>{message}</p>}
