@@ -143,6 +143,15 @@ export default function Home() {
                     @poppinflea
                   </a>
                 </div>
+                <a
+                  href="https://www.google.com/maps?client=safari&rls=en&oe=UTF-8&dlnr=1&um=1&ie=UTF-8&fb=1&gl=in&sa=X&geocode=KU_mgQ5JWe05MXY1v4BvBAa_&daddr=1274A/1,+Vidyapati+Marg,+beside+Vidyapati+Bhawan,+Lodipur,+Patna,+Bihar+800001"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
+                  style={{ marginTop: '1.5rem', display: 'inline-block' }}
+                >
+                  📍 Get Directions
+                </a>
               </div>
               <div className={styles.venueImageWrapper}>
                 <img src="https://placehold.co/800x600/000/FFF?text=Cafe+The+Cartel" alt="Venue" className={styles.venueImage} />
@@ -154,7 +163,10 @@ export default function Home() {
 
       <footer className={styles.footer}>
         <div className="container">
-          <p>&copy; {new Date().getFullYear()} PoppinFlea. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Poppin. All rights reserved.</p>
+          <Link href="/terms" style={{ color: '#6b7280', textDecoration: 'underline', fontSize: '0.9rem' }}>
+            Terms & Conditions
+          </Link>
         </div>
       </footer>
     </>
