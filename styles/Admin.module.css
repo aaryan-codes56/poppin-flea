@@ -96,14 +96,52 @@
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 
-.reserved {
+.pending-verification {
     background-color: #fef3c7;
     color: #d97706;
 }
 
-.completed {
+.reserved,
+.confirmed {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.guest-arrived,
+.arrived {
     background-color: #d1fae5;
     color: #059669;
+}
+
+.completed {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+.cancelled {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+@media (max-width: 768px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+
+    .main {
+        padding: 1rem 0;
+    }
 }

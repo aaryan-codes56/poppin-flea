@@ -319,30 +319,21 @@ export default function AdminDashboard() {
                                                         <button
                                                             onClick={() => handleVerifyPayment(index, booking)}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-                                                            title="Verify Payment & Confirm"
+                                                            title="Verify Payment & Confirm Booking"
                                                         >
                                                             Verify Payment
                                                         </button>
                                                     )}
-                                                    {booking.status === 'Reserved' && (
+                                                    {(booking.status === 'Reserved' || booking.status === 'Confirmed') && (
                                                         <button
-                                                            onClick={() => handleStatusUpdate(index, booking, 'Arrived')}
+                                                            onClick={() => handleStatusUpdate(index, booking, 'Guest Arrived')}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-                                                            title="Mark as Arrived"
+                                                            title="Mark as Guest Arrived"
                                                         >
-                                                            Arrived
+                                                            Guest Arrived
                                                         </button>
                                                     )}
-                                                    {booking.status === 'Arrived' && (
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(index, booking, 'Completed')}
-                                                            style={{ padding: '0.25rem 0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-                                                            title="Mark as Completed (Table Empty)"
-                                                        >
-                                                            Empty
-                                                        </button>
-                                                    )}
-                                                    {booking.status !== 'Cancelled' && booking.status !== 'Completed' && (
+                                                    {booking.status !== 'Cancelled' && booking.status !== 'Guest Arrived' && booking.status !== 'Arrived' && (
                                                         <button
                                                             onClick={() => handleCancel(index, booking)}
                                                             style={{ padding: '0.25rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}

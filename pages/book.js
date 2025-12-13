@@ -340,11 +340,28 @@ export default function Book() {
                                 <button
                                     type="submit"
                                     className="btn-primary"
-                                    style={{ width: '100%' }}
+                                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                                     disabled={status === 'loading'}
                                 >
-                                    {status === 'loading' ? 'Verifying...' : 'Confirm Booking'}
+                                    {status === 'loading' ? (
+                                        <>
+                                            <span style={{
+                                                width: '16px',
+                                                height: '16px',
+                                                border: '2px solid #000',
+                                                borderTopColor: 'transparent',
+                                                borderRadius: '50%',
+                                                animation: 'spin 1s linear infinite'
+                                            }}></span>
+                                            Uploading & Submitting...
+                                        </>
+                                    ) : 'Confirm Booking'}
                                 </button>
+                                <style jsx>{`
+                                    @keyframes spin {
+                                        to { transform: rotate(360deg); }
+                                    }
+                                `}</style>
                             </form>
                         </div>
                     </div>

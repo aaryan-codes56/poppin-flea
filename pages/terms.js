@@ -13,15 +13,15 @@ export default function Terms() {
 
             <Navbar />
 
-            <main style={{ padding: '4rem 0', minHeight: '80vh' }}>
-                <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', textAlign: 'center' }}>
+            <main style={{ padding: '2rem 0', minHeight: '80vh' }}>
+                <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}>
+                    <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', marginBottom: '1.5rem', textAlign: 'center', lineHeight: 1.3 }}>
                         Poppin Table Reservation
                         <br />
                         <span style={{ color: 'var(--primary-yellow)' }}>Terms & Conditions</span>
                     </h1>
 
-                    <div style={{ background: 'white', padding: '2rem', borderRadius: '1rem', boxShadow: 'var(--shadow-lg)' }}>
+                    <div style={{ background: 'white', padding: 'clamp(1rem, 4vw, 2rem)', borderRadius: '1rem', boxShadow: 'var(--shadow-lg)' }}>
                         <section style={{ marginBottom: '2rem' }}>
                             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>1. Table Confirmation</h2>
                             <p style={{ color: '#6b7280' }}>Your table is confirmed only after successful payment.</p>

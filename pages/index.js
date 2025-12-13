@@ -8,7 +8,7 @@ export default function Home() {
     <>
       <Head>
         <title>PoppinFlea - Book Your Table</title>
-        <meta name="description" content="Reserve your stall at the most exciting flea market experience." />
+        <meta name="description" content="Book your table at the most exciting flea market experience." />
       </Head>
 
       <Navbar />
@@ -18,7 +18,7 @@ export default function Home() {
         <section className={styles.hero}>
           <div className="container">
             <h1 className={styles.title}>Book Your Table at <span className={styles.highlight}>PoppinFlea</span></h1>
-            <p className={styles.subtitle}>Reserve your stall or booth instantly. Join the most vibrant flea market in town!</p>
+            <p className={styles.subtitle}>Book your table and enjoy the most vibrant flea market event in town!</p>
             <div className={styles.ctaGroup}>
               <Link href="/book" className="btn-primary">
                 Book a Table →
@@ -63,7 +63,7 @@ export default function Home() {
               <div className={styles.details}>
                 <h3>Christmas Eve Special</h3>
                 <p>Cafe The Cartel, Vidyapati Marg, Patna</p>
-                <p className={styles.smallText}>Near City Center Mall, 4:00 PM - 9:00 PM</p>
+                <p className={styles.smallText}>Near Income Tax Golamber, 4:00 PM - 9:00 PM</p>
                 <Link href="/book" className={styles.link}>Book Now</Link>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function Home() {
               <div className={styles.details}>
                 <h3>Christmas Day Bash</h3>
                 <p>Cafe The Cartel, Vidyapati Marg, Patna</p>
-                <p className={styles.smallText}>Near City Center Mall, 4:00 PM - 9:00 PM</p>
+                <p className={styles.smallText}>Near Income Tax Golamber, 4:00 PM - 9:00 PM</p>
                 <Link href="/book" className={styles.link}>Book Now</Link>
               </div>
             </div>
@@ -87,7 +87,7 @@ export default function Home() {
               <div className={styles.details}>
                 <h3>Post Christmas Fun</h3>
                 <p>Cafe The Cartel, Vidyapati Marg, Patna</p>
-                <p className={styles.smallText}>Near City Center Mall, 4:00 PM - 9:00 PM</p>
+                <p className={styles.smallText}>Near Income Tax Golamber, 4:00 PM - 9:00 PM</p>
                 <Link href="/book" className={styles.link}>Book Now</Link>
               </div>
             </div>
@@ -97,26 +97,33 @@ export default function Home() {
         <section className={styles.section}>
           <div className="container">
             <h2 className={styles.sectionTitle}>Past Events</h2>
-            <div className={styles.grid}>
+            <div className={styles.grid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
               <div className={styles.imageCard}>
-                <img src="https://placehold.co/600x400/FFE103/000?text=Past+Event+1" alt="Past Event 1" className={styles.image} />
+                <img src="https://placehold.co/600x400/FFE103/000?text=Christmas+Flea" alt="Poppin Christmas Flea 2024" className={styles.image} />
                 <div className={styles.imageOverlay}>
-                  <h3>Summer Vibes</h3>
-                  <p>June 2025</p>
+                  <h3>Poppin Christmas Flea 2024</h3>
+                  <p>Cafe Buddy Espresso</p>
                 </div>
               </div>
               <div className={styles.imageCard}>
-                <img src="https://placehold.co/600x400/000/FFE103?text=Past+Event+2" alt="Past Event 2" className={styles.image} />
+                <img src="https://placehold.co/600x400/E91E63/FFF?text=Valentine+Flea" alt="Poppin Valentine Flea 2025" className={styles.image} />
                 <div className={styles.imageOverlay}>
-                  <h3>Winter Wonderland</h3>
-                  <p>Dec 2024</p>
+                  <h3>Poppin Valentine Flea 2025</h3>
+                  <p>Kiki On The Roof</p>
                 </div>
               </div>
               <div className={styles.imageCard}>
-                <img src="https://placehold.co/600x400/FFE103/000?text=Past+Event+3" alt="Past Event 3" className={styles.image} />
+                <img src="https://placehold.co/600x400/4CAF50/FFF?text=Holi+Fest" alt="Garda Holi Fest 2025" className={styles.image} />
                 <div className={styles.imageOverlay}>
-                  <h3>Spring Fling</h3>
-                  <p>March 2025</p>
+                  <h3>Garda Holi Fest 2025</h3>
+                  <p>The Panache Banquets</p>
+                </div>
+              </div>
+              <div className={styles.imageCard}>
+                <img src="https://placehold.co/600x400/FF9800/000?text=Garba+2025" alt="Garda Garba 2025" className={styles.image} />
+                <div className={styles.imageOverlay}>
+                  <h3>Garda Garba 2025</h3>
+                  <p>City Centre</p>
                 </div>
               </div>
             </div>
@@ -131,7 +138,7 @@ export default function Home() {
               <div className={styles.venueInfo}>
                 <h3>Cafe The Cartel</h3>
                 <p className={styles.address}>Vidyapati Marg, beside Vidyapati Bhawan,<br />Lodipur, Patna, Bihar 800001</p>
-                <p className={styles.landmark}>Near City Center Mall</p>
+                <p className={styles.landmark}>Near Income Tax Golamber</p>
                 <p className={styles.venueDescription}>
                   Experience the perfect blend of cozy ambiance and vibrant energy.
                   Our venue offers spacious indoor seating, a breezy outdoor area,
