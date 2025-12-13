@@ -298,6 +298,13 @@ export default function AdminDashboard() {
                                                 <div style={{ fontSize: '0.8rem' }}>
                                                     <div><strong>Txn:</strong> {booking.transactionId || 'N/A'}</div>
                                                     <div><strong>UPI:</strong> {booking.upiName || 'N/A'}</div>
+                                                    {booking.screenshotLink && (
+                                                        <div style={{ marginTop: '0.25rem' }}>
+                                                            <a href={booking.screenshotLink} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                                                                View Screenshot
+                                                            </a>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={booking.comments}>{booking.comments}</td>

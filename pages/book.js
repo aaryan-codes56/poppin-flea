@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Navbar from '../components/Navbar';
 import styles from '../styles/Book.module.css';
@@ -19,11 +19,14 @@ export default function Book() {
     const [paymentData, setPaymentData] = useState({
         transactionId: '',
         upiName: '',
+        screenshot: null,
     });
 
     const [status, setStatus] = useState('idle'); // idle, loading, success, error
     const [message, setMessage] = useState('');
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [availability, setAvailability] = useState({});
+    const [loadingSlots, setLoadingSlots] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -31,8 +34,32 @@ export default function Book() {
     };
 
     const handlePaymentChange = (e) => {
-        const { name, value } = e.target;
-        setPaymentData((prev) => ({ ...prev, [name]: value }));
+        const { name, value, files } = e.target;
+        if (name === 'screenshot') {
+            setPaymentData((prev) => ({ ...prev, screenshot: files[0] }));
+        } else {
+            setPaymentData((prev) => ({ ...prev, [name]: value }));
+        }
+    };
+
+    // Fetch slots when date changes
+    useEffect(() => {
+        if (formData.date) {
+            fetchSlots(formData.date);
+        }
+    }, [formData.date]);
+
+    const fetchSlots = async (date) => {
+        setLoadingSlots(true);
+        try {
+            const res = await fetch(`/api/getSlots?date=${date}`);
+            const data = await res.json();
+            setAvailability(data.availability || {});
+        } catch (error) {
+            console.error('Failed to fetch slots', error);
+        } finally {
+            setLoadingSlots(false);
+        }
     };
 
     const handleInitialSubmit = (e) => {
@@ -46,6 +73,14 @@ export default function Book() {
             return;
         }
 
+        // Check if selected slot is full
+        const slotStatus = availability[formData.timeSlot]?.[formData.area]?.status;
+        if (slotStatus === 'red') {
+            setStatus('error');
+            setMessage('Selected time slot is full for this area. Please choose another.');
+            return;
+        }
+
         setShowPaymentModal(true);
     };
 
@@ -54,19 +89,23 @@ export default function Book() {
         setStatus('loading');
         setMessage('');
 
+        const data = new FormData();
+        // Append form data
+        Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        // Append payment data
+        data.append('transactionId', paymentData.transactionId);
+        data.append('upiName', paymentData.upiName);
+        if (paymentData.screenshot) {
+            data.append('screenshot', paymentData.screenshot);
+        }
+
         try {
             const response = await fetch('/api/createBooking', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    ...paymentData
-                }),
+                body: data, // fetch automatically sets Content-Type to multipart/form-data
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
             if (response.ok) {
                 setStatus('success');
@@ -86,10 +125,11 @@ export default function Book() {
                 setPaymentData({
                     transactionId: '',
                     upiName: '',
+                    screenshot: null,
                 });
             } else {
                 setStatus('error');
-                setMessage(data.message || 'Something went wrong. Please try again.');
+                setMessage(result.message || 'Something went wrong. Please try again.');
                 setShowPaymentModal(false);
             }
         } catch (error) {
@@ -99,10 +139,9 @@ export default function Book() {
         }
     };
 
-    const timeSlots = [
-        "16:00", "16:30", "17:00", "17:30", "18:00", "18:30",
-        "19:00", "19:30", "20:00", "20:30", "21:00"
-    ];
+    const timeSlots = ["16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+
+    const totalPrice = (parseInt(formData.adults || 0) + parseInt(formData.children || 0)) * 1000;
 
     return (
         <>
@@ -146,28 +185,57 @@ export default function Book() {
 
                                 <div className={styles.grid}>
                                     <div className={styles.field}>
+                                        <label htmlFor="date">Date</label>
+                                        <input type="date" id="date" name="date" required min="2025-12-24" max="2025-12-26" value={formData.date} onChange={handleChange} />
+                                    </div>
+                                    <div className={styles.field}>
                                         <label htmlFor="area">Select Area</label>
                                         <select id="area" name="area" value={formData.area} onChange={handleChange}>
                                             <option value="Library (Smoking)">Library (Smoking)</option>
                                             <option value="Indoor">Indoor</option>
                                         </select>
                                     </div>
-                                    <div className={styles.field}>
-                                        <label htmlFor="timeSlot">Time Slot</label>
-                                        <select id="timeSlot" name="timeSlot" value={formData.timeSlot} onChange={handleChange}>
-                                            {timeSlots.map(slot => (
-                                                <option key={slot} value={slot}>{slot}</option>
-                                            ))}
-                                        </select>
-                                    </div>
                                 </div>
 
-                                <div className={styles.grid}>
-                                    <div className={styles.field}>
-                                        <label htmlFor="date">Date</label>
-                                        <input type="date" id="date" name="date" required min="2025-12-24" max="2025-12-26" value={formData.date} onChange={handleChange} />
+                                <div className={styles.field}>
+                                    <label>Time Slot <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>(45 mins per slot)</span></label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                        {timeSlots.map(slot => {
+                                            const slotInfo = availability[slot]?.[formData.area];
+                                            const statusColor = slotInfo?.status || 'green'; // default green if not fetched yet
+                                            const isFull = statusColor === 'red';
+
+                                            let borderColor = '#22c55e'; // green
+                                            if (statusColor === 'yellow') borderColor = '#eab308';
+                                            if (statusColor === 'red') borderColor = '#ef4444';
+
+                                            return (
+                                                <button
+                                                    key={slot}
+                                                    type="button"
+                                                    disabled={isFull}
+                                                    onClick={() => setFormData(prev => ({ ...prev, timeSlot: slot }))}
+                                                    style={{
+                                                        padding: '0.5rem',
+                                                        border: `2px solid ${borderColor}`,
+                                                        backgroundColor: formData.timeSlot === slot ? borderColor : 'white',
+                                                        color: formData.timeSlot === slot ? 'white' : 'black',
+                                                        borderRadius: '8px',
+                                                        cursor: isFull ? 'not-allowed' : 'pointer',
+                                                        opacity: isFull ? 0.6 : 1,
+                                                        fontWeight: 'bold'
+                                                    }}
+                                                >
+                                                    {slot}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                    <div className={styles.field}></div>
+                                    <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
+                                        <span style={{ color: '#22c55e' }}>●</span> Available &nbsp;
+                                        <span style={{ color: '#eab308' }}>●</span> Filling Fast &nbsp;
+                                        <span style={{ color: '#ef4444' }}>●</span> Full
+                                    </p>
                                 </div>
 
                                 <div className={styles.grid}>
@@ -222,6 +290,10 @@ export default function Book() {
                                     style={{ width: '250px', height: 'auto', border: '1px solid #ddd', borderRadius: '8px' }}
                                 />
                                 <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#666' }}>Scan with any UPI App</p>
+                                <div style={{ marginTop: '1rem', padding: '0.5rem', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
+                                    <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1.1rem' }}>Total Amount: Rs. {totalPrice}</p>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>({formData.adults} Adults + {formData.children} Children) x Rs. 1000</p>
+                                </div>
                             </div>
 
                             <form onSubmit={handleFinalSubmit}>
@@ -238,7 +310,7 @@ export default function Book() {
                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #ccc' }}
                                     />
                                 </div>
-                                <div className={styles.field} style={{ marginBottom: '1.5rem' }}>
+                                <div className={styles.field} style={{ marginBottom: '1rem' }}>
                                     <label htmlFor="upiName">Name on UPI</label>
                                     <input
                                         type="text"
@@ -250,6 +322,19 @@ export default function Book() {
                                         placeholder="e.g. Krish Prakash"
                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #ccc' }}
                                     />
+                                </div>
+                                <div className={styles.field} style={{ marginBottom: '1.5rem' }}>
+                                    <label htmlFor="screenshot">Payment Screenshot <span style={{ color: '#dc2626' }}>*</span></label>
+                                    <input
+                                        type="file"
+                                        id="screenshot"
+                                        name="screenshot"
+                                        accept="image/*"
+                                        required
+                                        onChange={handlePaymentChange}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #ccc' }}
+                                    />
+                                    <p style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '0.25rem' }}>Required for payment verification</p>
                                 </div>
 
                                 <button

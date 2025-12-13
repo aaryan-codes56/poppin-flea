@@ -57,6 +57,7 @@ export default async function handler(req, res) {
                 comments: row[9] || '',
                 transactionId: row[10] || '',
                 upiName: row[11] || '',
+                screenshotLink: row[12] || '', // Screenshot Link at index 12 (Column M)
                 status: row[13] || 'Reserved', // Status is at index 13 (Column N)
                 rowIndex: sheetRowIndex, // CRITICAL: This must be the actual row number in the sheet
             };
