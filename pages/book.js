@@ -204,7 +204,7 @@ export default function Book() {
 
                                 <div className={styles.field}>
                                     <label>Time Slot <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>(45 mins per slot)</span></label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                    <div className={styles.timeSlotGrid}>
                                         {timeSlots.map(slot => {
                                             const slotInfo = availability[slot]?.[formData.area];
                                             const statusColor = slotInfo?.status || 'green'; // default green if not fetched yet
@@ -289,17 +289,11 @@ export default function Book() {
 
                 {/* Payment Modal */}
                 {showPaymentModal && (
-                    <div style={{
-                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-                    }}>
-                        <div style={{
-                            backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', maxWidth: '500px', width: '90%',
-                            maxHeight: '90vh', overflowY: 'auto', position: 'relative'
-                        }}>
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modalContent}>
                             <button
                                 onClick={() => setShowPaymentModal(false)}
-                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
+                                className={styles.closeBtn}
                             >
                                 ✕
                             </button>
