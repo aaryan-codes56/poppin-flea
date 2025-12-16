@@ -214,25 +214,43 @@ export default function Book() {
                                             if (statusColor === 'yellow') borderColor = '#eab308';
                                             if (statusColor === 'red') borderColor = '#ef4444';
 
+                                            // Only calculate/show remaining if date is selected and we have slot info
+                                            const showRemaining = formData.date && slotInfo;
+                                            const remaining = showRemaining
+                                                ? Math.max(0, (slotInfo.limit || 0) - (slotInfo.count || 0))
+                                                : null;
+
                                             return (
-                                                <button
-                                                    key={slot}
-                                                    type="button"
-                                                    disabled={isFull}
-                                                    onClick={() => setFormData(prev => ({ ...prev, timeSlot: slot }))}
-                                                    style={{
-                                                        padding: '0.5rem',
-                                                        border: `2px solid ${borderColor}`,
-                                                        backgroundColor: formData.timeSlot === slot ? borderColor : 'white',
-                                                        color: formData.timeSlot === slot ? 'white' : 'black',
-                                                        borderRadius: '8px',
-                                                        cursor: isFull ? 'not-allowed' : 'pointer',
-                                                        opacity: isFull ? 0.6 : 1,
-                                                        fontWeight: 'bold'
-                                                    }}
-                                                >
-                                                    {slot}
-                                                </button>
+                                                <div key={slot} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    <button
+                                                        type="button"
+                                                        disabled={isFull}
+                                                        onClick={() => setFormData(prev => ({ ...prev, timeSlot: slot }))}
+                                                        style={{
+                                                            padding: '0.5rem',
+                                                            border: `2px solid ${borderColor}`,
+                                                            backgroundColor: formData.timeSlot === slot ? borderColor : 'white',
+                                                            color: formData.timeSlot === slot ? 'white' : 'black',
+                                                            borderRadius: '8px',
+                                                            cursor: isFull ? 'not-allowed' : 'pointer',
+                                                            opacity: isFull ? 0.6 : 1,
+                                                            fontWeight: 'bold',
+                                                            width: '100%'
+                                                        }}
+                                                    >
+                                                        {slot}
+                                                    </button>
+                                                    {showRemaining && (
+                                                        <span style={{
+                                                            fontSize: '0.7rem',
+                                                            textAlign: 'center',
+                                                            color: isFull ? '#ef4444' : '#666',
+                                                            fontWeight: '500'
+                                                        }}>
+                                                            {isFull ? 'Full' : `${remaining} left`}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             );
                                         })}
                                     </div>

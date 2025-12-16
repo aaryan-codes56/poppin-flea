@@ -277,3 +277,38 @@
         text-align: center;
     }
 }
+
+.featureCard {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+}
+
+.featureCard:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.featureImage {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.featureContent {
+    padding: 1.5rem;
+}
+
+.featureContent h3 {
+    margin-bottom: 0.5rem;
+    color: var(--secondary-black);
+    font-size: 1.25rem;
+}
+
+.featureContent p {
+    color: #6b7280;
+    line-height: 1.5;
+}

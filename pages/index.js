@@ -35,17 +35,26 @@ export default function Home() {
           <div className="container">
             <h2 className={styles.sectionTitle}>About the Flea Market</h2>
             <div className={styles.grid}>
-              <div className="card">
-                <h3>Vibrant Community</h3>
-                <p>Connect with hundreds of local vendors and thousands of shoppers.</p>
+              <div className={styles.featureCard}>
+                <img src="/flea-music.png" alt="Live Music" className={styles.featureImage} />
+                <div className={styles.featureContent}>
+                  <h3>Live Acoustic Music</h3>
+                  <p>Soak in the soulful tunes of live acoustic performances that set the perfect mood for your evening.</p>
+                </div>
               </div>
-              <div className="card">
-                <h3>Prime Location</h3>
-                <p>Located in the heart of the city with easy access and parking.</p>
+              <div className={styles.featureCard}>
+                <img src="/flea-vibe.png" alt="Festive Vibe" className={styles.featureImage} />
+                <div className={styles.featureContent}>
+                  <h3>Magical Ambience</h3>
+                  <p>Experience a cozy, fairy-light filled festive atmosphere that captures the true spirit of the holidays.</p>
+                </div>
               </div>
-              <div className="card">
-                <h3>Premium Setup</h3>
-                <p>We provide tables, chairs, and electricity. Just bring your products!</p>
+              <div className={styles.featureCard}>
+                <img src="/flea-food.png" alt="Gourmet Food" className={styles.featureImage} />
+                <div className={styles.featureContent}>
+                  <h3>Gourmet Delights</h3>
+                  <p>Indulge in a curated selection of delicious food and refreshing drinks from our premium cafe menu.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -161,7 +170,7 @@ export default function Home() {
                 </a>
               </div>
               <div className={styles.venueImageWrapper}>
-                <img src="https://placehold.co/800x600/000/FFF?text=Cafe+The+Cartel" alt="Venue" className={styles.venueImage} />
+                <img src="/venue.jpg" alt="Cafe The Cartel" className={styles.venueImage} />
               </div>
             </div>
           </div>

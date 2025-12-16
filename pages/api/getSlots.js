@@ -57,9 +57,13 @@ export default async function handler(req, res) {
             availability[slot] = {};
 
             areas.forEach(area => {
-                const count = bookingsForDate.filter(row =>
-                    row[TIME_COL] === slot && row[AREA_COL] === area.name
-                ).length;
+                const count = bookingsForDate
+                    .filter(row => row[TIME_COL] === slot && row[AREA_COL] === area.name)
+                    .reduce((total, row) => {
+                        const adults = parseInt(row[7] || 0); // Column H (Index 7)
+                        // Children (Column I - Index 8) are excluded from capacity limit
+                        return total + adults;
+                    }, 0);
 
                 let status = 'green';
                 if (count >= area.limit) {

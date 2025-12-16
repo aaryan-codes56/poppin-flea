@@ -117,7 +117,7 @@ export default async function handler(req, res) {
         // 2. Check Capacity
         const getRows = await sheets.spreadsheets.values.get({
             spreadsheetId,
-            range: 'Sheet1!A:G', // Need columns up to G (TimeSlot is F, Area is E)
+            range: 'Sheet1!A:I', // Need columns up to I (Adults is H, Children is I)
         });
 
         const rows = getRows.data.values || [];
@@ -134,10 +134,20 @@ export default async function handler(req, res) {
             row[AREA_COL] === area
         );
 
+        const currentPeopleCount = bookingsForSlot.reduce((total, row) => {
+            const rowAdults = parseInt(row[7] || 0); // Index 7
+            // Children excluded from capacity
+            return total + rowAdults;
+        }, 0);
+
+        const newBookingAdults = parseInt(adults || 0);
         const limit = area === 'Library (Smoking)' ? 4 : 16;
 
-        if (bookingsForSlot.length >= limit) {
-            return res.status(400).json({ message: `Sorry, ${area} is fully booked for ${timeSlot} on this date.` });
+        if (currentPeopleCount + newBookingAdults > limit) {
+            const remaining = limit - currentPeopleCount;
+            return res.status(400).json({
+                message: `Sorry, only ${remaining} spot${remaining !== 1 ? 's' : ''} left for adults in ${area} for this time slot.`
+            });
         }
 
         // 3. Append new booking
