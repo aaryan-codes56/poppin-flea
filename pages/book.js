@@ -73,12 +73,25 @@ export default function Book() {
             return;
         }
 
-        // Check if selected slot is full
-        const slotStatus = availability[formData.timeSlot]?.[formData.area]?.status;
-        if (slotStatus === 'red') {
-            setStatus('error');
-            setMessage('Selected time slot is full for this area. Please choose another.');
-            return;
+        // Check capacity limits
+        const slotInfo = availability[formData.timeSlot]?.[formData.area];
+        if (slotInfo) {
+            const currentCount = slotInfo.count || 0;
+            const limit = slotInfo.limit || 0;
+            const requestedAdults = parseInt(formData.adults || 0, 10);
+
+            if (currentCount >= limit) {
+                setStatus('error');
+                setMessage('Selected time slot is full for this area. Please choose another.');
+                return;
+            }
+
+            if (currentCount + requestedAdults > limit) {
+                const remaining = Math.max(0, limit - currentCount);
+                setStatus('error');
+                setMessage(`Only ${remaining} spot${remaining !== 1 ? 's' : ''} left for this slot. Please reduce adults or choose another slot.`);
+                return;
+            }
         }
 
         setShowPaymentModal(true);

@@ -56,6 +56,13 @@ export default function Home() {
                   <p>Indulge in a curated selection of delicious food and refreshing drinks from our premium cafe menu.</p>
                 </div>
               </div>
+              <div className={styles.featureCard}>
+                <img src="/flea-stalls.jpg" alt="Shop Stalls" className={styles.featureImage} />
+                <div className={styles.featureContent}>
+                  <h3>Shop from Your Favorite Stalls</h3>
+                  <p>Discover unique products and shop from a wide variety of stalls featuring local artisans and brands.</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -108,28 +115,28 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>Past Events</h2>
             <div className={styles.grid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
               <div className={styles.imageCard}>
-                <img src="https://placehold.co/600x400/FFE103/000?text=Christmas+Flea" alt="Poppin Christmas Flea 2024" className={styles.image} />
+                <img src="/christmas-flea-poster.jpg" alt="Poppin Christmas Flea 2024" className={styles.image} />
                 <div className={styles.imageOverlay}>
                   <h3>Poppin Christmas Flea 2024</h3>
                   <p>Cafe Buddy Espresso</p>
                 </div>
               </div>
               <div className={styles.imageCard}>
-                <img src="https://placehold.co/600x400/E91E63/FFF?text=Valentine+Flea" alt="Poppin Valentine Flea 2025" className={styles.image} />
+                <img src="/valentine.jpg" alt="Poppin Valentine Flea 2025" className={styles.image} />
                 <div className={styles.imageOverlay}>
                   <h3>Poppin Valentine Flea 2025</h3>
                   <p>Kiki On The Roof</p>
                 </div>
               </div>
               <div className={styles.imageCard}>
-                <img src="https://placehold.co/600x400/4CAF50/FFF?text=Holi+Fest" alt="Garda Holi Fest 2025" className={styles.image} />
+                <img src="/holi.jpg" alt="Garda Holi Fest 2025" className={styles.image} />
                 <div className={styles.imageOverlay}>
                   <h3>Garda Holi Fest 2025</h3>
                   <p>The Panache Banquets</p>
                 </div>
               </div>
               <div className={styles.imageCard}>
-                <img src="https://placehold.co/600x400/FF9800/000?text=Garba+2025" alt="Garda Garba 2025" className={styles.image} />
+                <img src="/garba.jpg" alt="Garda Garba 2025" className={styles.image} />
                 <div className={styles.imageOverlay}>
                   <h3>Garda Garba 2025</h3>
                   <p>City Centre</p>
@@ -140,7 +147,8 @@ export default function Home() {
         </section>
 
         {/* Venue Details Section */}
-        <section className={`${styles.section} ${styles.bgGray}`}>
+        < section className={`${styles.section} ${styles.bgGray}`
+        }>
           <div className="container">
             <h2 className={styles.sectionTitle}>The Venue</h2>
             <div className={styles.venueContainer}>
@@ -174,8 +182,8 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
-      </main>
+        </section >
+      </main >
 
       <footer className={styles.footer}>
         <div className="container">
