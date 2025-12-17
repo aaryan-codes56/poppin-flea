@@ -37,12 +37,10 @@ export default async function handler(req, res) {
         const TIME_COL = 6;
         const STATUS_COL = 13;
 
-        // Only count CONFIRMED bookings (not pending verification)
-        const confirmedStatuses = ['Reserved', 'Confirmed', 'Guest Arrived', 'Arrived'];
-
+        // Count ALL bookings except Cancelled (Pending should hold slots)
         const bookingsForDate = rows.filter(row =>
             row[DATE_COL] === date &&
-            confirmedStatuses.includes(row[STATUS_COL])
+            row[STATUS_COL] !== 'Cancelled'
         );
 
         const timeSlots = ["16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];

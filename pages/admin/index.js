@@ -35,6 +35,7 @@ export default function AdminDashboard() {
     };
 
     const [showForm, setShowForm] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -44,6 +45,7 @@ export default function AdminDashboard() {
         timeSlot: '16:00',
         adults: 1,
         children: 0,
+        transactionId: '',
         comments: '',
     });
 
@@ -147,21 +149,27 @@ export default function AdminDashboard() {
         }));
     };
 
+    const totalAmount = (parseInt(formData.adults || 0) + parseInt(formData.children || 0)) * 250;
+
     const handleOnSpotSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
         try {
+            const formDataToSend = new FormData();
+            Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
+            formDataToSend.append('isOnSpot', 'true');
+
+            // No screenshot needed for On-Spot
+
             const response = await fetch('/api/createBooking', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+                body: formDataToSend, // fetch sends FormData as multipart/form-data
             });
 
-            const data = await response.json();
+            const resultData = await response.json();
 
             if (response.ok) {
-                alert(`Booking Successful! Ref ID: #${data.data.updates.updatedData.values[0][0] || 'N/A'}`);
+                alert(`Booking Successful! Ref ID: #${resultData.data.updates.updatedData.values[0][0] || 'N/A'}`);
                 setShowForm(false);
                 setFormData({
                     name: '',
@@ -172,15 +180,18 @@ export default function AdminDashboard() {
                     timeSlot: '16:00',
                     adults: 1,
                     children: 0,
+                    transactionId: '',
                     comments: '',
                 });
                 fetchBookings();
             } else {
-                alert(data.message || 'Booking failed');
+                alert(resultData.message || 'Booking failed');
             }
         } catch (error) {
             console.error('Error creating booking:', error);
             alert('An error occurred. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -248,14 +259,36 @@ export default function AdminDashboard() {
                                     <option value="2025-12-26">Dec 26</option>
                                 </select>
                                 <select name="timeSlot" value={formData.timeSlot} onChange={handleInputChange} style={{ padding: '0.5rem' }}>
-                                    {['16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'].map(t => (
+                                    {['16:00', '17:00', '18:00', '19:00', '20:00', '21:00'].map(t => (
                                         <option key={t} value={t}>{t}</option>
                                     ))}
                                 </select>
+
                                 <input type="number" name="adults" placeholder="Adults" min="1" value={formData.adults} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
                                 <input type="number" name="children" placeholder="Children" min="0" value={formData.children} onChange={handleInputChange} style={{ padding: '0.5rem' }} />
+                                <input type="text" name="transactionId" placeholder="Transaction ID / UTR" value={formData.transactionId} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
                                 <input type="text" name="comments" placeholder="Comments" value={formData.comments} onChange={handleInputChange} style={{ padding: '0.5rem' }} />
-                                <button type="submit" style={{ gridColumn: '1 / -1', padding: '0.75rem', backgroundColor: '#FFE103', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Book Now</button>
+
+                                <div style={{ gridColumn: '1 / -1', padding: '0.5rem', backgroundColor: '#e5e7eb', borderRadius: '4px', fontWeight: 'bold' }}>
+                                    Total Amount: Rs. {totalAmount} <span style={{ fontWeight: 'normal', fontSize: '0.85rem' }}>({formData.adults} Adults + {formData.children} Children)</span>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    style={{
+                                        gridColumn: '1 / -1',
+                                        padding: '0.75rem',
+                                        backgroundColor: isSubmitting ? '#ccc' : '#FFE103',
+                                        color: '#000',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontWeight: 'bold',
+                                        cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                                    }}
+                                >
+                                    {isSubmitting ? 'Booking...' : 'Book Now'}
+                                </button>
                             </form>
                         )}
                     </div>

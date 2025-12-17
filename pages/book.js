@@ -62,6 +62,25 @@ export default function Book() {
         }
     };
 
+    // Auto-clamp adults count if it exceeds capacity when switching areas/slots
+    useEffect(() => {
+        const slotInfo = availability[formData.timeSlot]?.[formData.area];
+        if (slotInfo) {
+            const limit = slotInfo.limit || 0;
+            const count = slotInfo.count || 0;
+            const remaining = Math.max(0, limit - count);
+
+            // If current adults selection is higher than remaining, clamp it
+            if (parseInt(formData.adults) > remaining) {
+                // If remaining is 0, we can't really set to 0 as min is 1, but user can't submit anyway
+                // We set to remaining if > 0, else keep as is (validation will catch it) or set to 1
+                if (remaining > 0) {
+                    setFormData(prev => ({ ...prev, adults: remaining }));
+                }
+            }
+        }
+    }, [formData.area, formData.timeSlot, formData.date, availability]);
+
     const handleInitialSubmit = (e) => {
         e.preventDefault();
 
@@ -154,7 +173,12 @@ export default function Book() {
 
     const timeSlots = ["16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
 
-    const totalPrice = (parseInt(formData.adults || 0) + parseInt(formData.children || 0)) * 1000;
+    const totalPrice = (parseInt(formData.adults || 0) + parseInt(formData.children || 0)) * 250;
+
+    // Calculate remaining capacity for current selection
+    const currentSlotInfo = availability[formData.timeSlot]?.[formData.area];
+    const maxCapacity = currentSlotInfo ? Math.max(0, (currentSlotInfo.limit || 0) - (currentSlotInfo.count || 0)) : 16; // Default to 16 if not loaded
+
 
     return (
         <>
@@ -277,7 +301,21 @@ export default function Book() {
                                 <div className={styles.grid}>
                                     <div className={styles.field}>
                                         <label htmlFor="adults">Adults</label>
-                                        <input type="number" id="adults" name="adults" min="1" required value={formData.adults} onChange={handleChange} />
+                                        <input
+                                            type="number"
+                                            id="adults"
+                                            name="adults"
+                                            min="1"
+                                            max={maxCapacity}
+                                            required
+                                            value={formData.adults}
+                                            onChange={handleChange}
+                                        />
+                                        {formData.date && currentSlotInfo && (
+                                            <small style={{ color: maxCapacity < 4 ? '#ef4444' : '#666' }}>
+                                                Max {maxCapacity} spots left
+                                            </small>
+                                        )}
                                     </div>
                                     <div className={styles.field}>
                                         <label htmlFor="children">Children</label>
@@ -295,6 +333,9 @@ export default function Book() {
                                 <button type="submit" className={`btn-primary ${styles.submitBtn}`}>
                                     Proceed to Payment
                                 </button>
+                                <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#666' }}>
+                                    For any queries: <strong>8709294143 / 9334227855</strong>
+                                </p>
                             </form>
                         )}
                     </div>
@@ -320,9 +361,12 @@ export default function Book() {
                                     style={{ width: '250px', height: 'auto', border: '1px solid #ddd', borderRadius: '8px' }}
                                 />
                                 <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#666' }}>Scan with any UPI App</p>
+                                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>
+                                    Issues paying? Call <strong>8709294143 / 9334227855</strong>
+                                </p>
                                 <div style={{ marginTop: '1rem', padding: '0.5rem', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
                                     <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1.1rem' }}>Total Amount: Rs. {totalPrice}</p>
-                                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>({formData.adults} Adults + {formData.children} Children) x Rs. 1000</p>
+                                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>({formData.adults} Adults + {formData.children} Children) x Rs. 250</p>
                                 </div>
                             </div>
 

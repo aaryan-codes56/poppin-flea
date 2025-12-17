@@ -80,8 +80,11 @@ export default async function handler(req, res) {
                             <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
                                 <p style="margin: 0; font-size: 1.2rem; font-weight: bold;">Reference ID: #${refId || 'N/A'}</p>
                             </div>
-                            <p>If you have any questions, please reply to this email.</p>
+                            <p style="color: #d97706; font-weight: bold;">⚠️ If you have already made the payment, please contact us immediately at 8709294143 / 9334227855.</p>
                             <p>We hope to see you another time!</p>
+                        </div>
+                        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #666;">
+                            <p>For any queries: <strong>8709294143 / 9334227855</strong></p>
                         </div>
                     `,
                 };

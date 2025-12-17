@@ -112,6 +112,9 @@ export default async function handler(req, res) {
                                 <p style="margin-top: 10px;">Full T&C: <a href="https://poppinflea.com/terms" style="color: #2563eb;">poppinflea.com/terms</a></p>
                             </div>
                         </div>
+                        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #666;">
+                            <p>For any queries: <strong>8709294143</strong> / <strong>9334227855</strong></p>
+                        </div>
                     `,
                 };
                 await transporter.sendMail(mailOptions);

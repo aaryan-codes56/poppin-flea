@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import styles from '../styles/Home.module.css';
+import Footer from '../components/Footer';
 
 export default function Home() {
   return (
@@ -184,15 +185,7 @@ export default function Home() {
           </div>
         </section >
       </main >
-
-      <footer className={styles.footer}>
-        <div className="container">
-          <p>&copy; {new Date().getFullYear()} Poppin. All rights reserved.</p>
-          <Link href="/terms" style={{ color: '#6b7280', textDecoration: 'underline', fontSize: '0.9rem' }}>
-            Terms & Conditions
-          </Link>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

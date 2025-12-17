@@ -50,9 +50,30 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
-        // Validate screenshot is provided
+        // Strict Date Validation
+        const allowedDates = ['2025-12-24', '2025-12-25', '2025-12-26'];
+        if (!allowedDates.includes(date)) {
+            return res.status(400).json({ message: 'Invalid date selected. Allowed: Dec 24, 25, 26' });
+        }
+
+        // Guest Count Validation
+        if (parseInt(adults) < 1 || parseInt(children) < 0) {
+            return res.status(400).json({ message: 'Invalid guest count' });
+        }
+
+        const isOnSpot = getField('isOnSpot') === 'true';
+
+        console.log('--- DEBUG: createBooking ---');
+        console.log('isOnSpot raw:', getField('isOnSpot'));
+        console.log('isOnSpot bool:', isOnSpot);
+        console.log('Date:', date);
+        console.log('Adults:', adults);
+        console.log('Screenshot present:', !!files.screenshot);
+        console.log('----------------------------');
+
+        // Validate screenshot is provided (skipped for on-spot bookings)
         const screenshotFile = files.screenshot ? (Array.isArray(files.screenshot) ? files.screenshot[0] : files.screenshot) : null;
-        if (!screenshotFile) {
+        if (!screenshotFile && !isOnSpot) {
             return res.status(400).json({ message: 'Payment screenshot is required for verification' });
         }
 
@@ -75,43 +96,36 @@ export default async function handler(req, res) {
         let screenshotLink = '';
         let uploadErrorDetail = null;
 
-        const filePath = screenshotFile.filepath || screenshotFile.path;
-        console.log('Processing screenshot:', filePath);
-        console.log('Screenshot file object:', JSON.stringify(screenshotFile, null, 2));
+        if (screenshotFile) {
+            const filePath = screenshotFile.filepath || screenshotFile.path;
 
-        if (filePath) {
-            try {
-                const cloudinary = require('cloudinary').v2;
+            if (filePath) {
+                try {
+                    const cloudinary = require('cloudinary').v2;
 
-                // Log Cloudinary config status (without exposing secrets)
-                console.log('Cloudinary Config Status:', {
-                    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING',
-                    api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING',
-                    api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING',
-                });
+                    cloudinary.config({
+                        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                        api_key: process.env.CLOUDINARY_API_KEY,
+                        api_secret: process.env.CLOUDINARY_API_SECRET,
+                    });
 
-                cloudinary.config({
-                    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-                    api_key: process.env.CLOUDINARY_API_KEY,
-                    api_secret: process.env.CLOUDINARY_API_SECRET,
-                });
+                    const result = await cloudinary.uploader.upload(filePath, {
+                        folder: 'poppin_bookings',
+                        public_id: `payment_${transactionId}_${name.replace(/\s+/g, '_')}_${Date.now()}`,
+                        resource_type: 'image',
+                    });
 
-                const result = await cloudinary.uploader.upload(filePath, {
-                    folder: 'poppin_bookings',
-                    public_id: `payment_${transactionId}_${name.replace(/\s+/g, '_')}_${Date.now()}`,
-                    resource_type: 'image',
-                });
-
-                screenshotLink = result.secure_url;
-                console.log('Cloudinary Upload Success:', screenshotLink);
-            } catch (uploadError) {
-                console.error('Cloudinary upload failed:', uploadError);
-                uploadErrorDetail = uploadError.message;
-                // Don't return error here, continue with empty link but log the issue
+                    screenshotLink = result.secure_url;
+                    console.log('Cloudinary Upload Success:', screenshotLink);
+                } catch (uploadError) {
+                    console.error('Cloudinary upload failed:', uploadError);
+                    uploadErrorDetail = uploadError.message;
+                    // Don't return error here, continue with empty link but log the issue
+                }
+            } else {
+                console.error('File path not found on screenshot object:', screenshotFile);
+                uploadErrorDetail = 'File path missing';
             }
-        } else {
-            console.error('File path not found on screenshot object:', screenshotFile);
-            uploadErrorDetail = 'File path missing';
         }
 
         // 2. Check Capacity
@@ -131,7 +145,8 @@ export default async function handler(req, res) {
         const bookingsForSlot = rows.filter(row =>
             row[DATE_COL] === date &&
             row[TIME_COL] === timeSlot &&
-            row[AREA_COL] === area
+            row[AREA_COL] === area &&
+            row[13] !== 'Cancelled' // Check Status (Index 13)
         );
 
         const currentPeopleCount = bookingsForSlot.reduce((total, row) => {
@@ -218,8 +233,11 @@ export default async function handler(req, res) {
                                 <li><strong>Time:</strong> ${timeSlot}</li>
                                 <li><strong>Area:</strong> ${area}</li>
                                 <li><strong>Guests:</strong> ${adults} Adults, ${children} Children</li>
-                                <li><strong>Total Amount:</strong> Rs. ${(parseInt(adults) + parseInt(children)) * 1000}</li>
+                                <li><strong>Total Amount:</strong> Rs. ${(parseInt(adults) + parseInt(children)) * 250}</li>
                             </ul>
+                        </div>
+                        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: #666;">
+                            <p>For any queries: <strong>8709294143</strong> / <strong>9334227855</strong></p>
                         </div>
                     `,
                 };
