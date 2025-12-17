@@ -28,20 +28,5 @@ A modern, responsive table booking and reservation management system built for *
 *   **Authentication**: Simple local storage check (Admin)
 
 
-## 📂 Project Structure
-
-*   `pages/`
-    *   `index.js`: Home page with event and venue info.
-    *   `book.js`: Booking form page.
-    *   `admin/`: Admin dashboard and login.
-    *   `api/`: Server-side API routes for booking and sheet management.
-*   `styles/`: CSS modules for component-level styling.
-*   `components/`: Reusable UI components (Navbar, etc.).
-
-## 📝 Google Sheets Structure
-
-The system expects a Google Sheet with the following columns (in order):
-`Ref ID | Name | Phone | Email | Area | Date | Time | Adults | Children | Comments | Action | Status`
-
 ---
 Built with ❤️ for PoppinFlea.
