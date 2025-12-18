@@ -56,6 +56,12 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Invalid date selected. Allowed: Dec 24, 25, 26' });
         }
 
+        // Strict Time Slot Validation
+        const allowedTimeSlots = ["16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+        if (!allowedTimeSlots.includes(timeSlot)) {
+            return res.status(400).json({ message: 'Invalid time slot selected. Allowed: 16:00 - 21:00' });
+        }
+
         // Guest Count Validation
         if (parseInt(adults) < 1 || parseInt(children) < 0) {
             return res.status(400).json({ message: 'Invalid guest count' });
@@ -252,6 +258,7 @@ export default async function handler(req, res) {
             data: response.data,
             uploadError: uploadErrorDetail
         });
+
     } catch (error) {
         console.error('Handler Error:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });

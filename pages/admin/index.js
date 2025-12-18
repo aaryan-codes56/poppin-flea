@@ -324,7 +324,7 @@ export default function AdminDashboard() {
                                             <td>{booking.email}</td>
                                             <td>{booking.area}</td>
                                             <td>{booking.date}</td>
-                                            <td>{booking.timeSlot}</td>
+                                            <td>{booking.timeSlot || '-'}</td>
                                             <td>{booking.adults}</td>
                                             <td>{booking.children}</td>
                                             <td>
