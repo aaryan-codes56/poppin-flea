@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /unsubscribe
+
+Sitemap: https://www.poppinflea.in/sitemap.xml

@@ -1,26 +1,23 @@
-// Test Cloudinary configuration
+// Test Cloudinary configuration using credentials from .env.local.
+// The credentials that used to be hard-coded here were committed to Git and
+// must be rotated in the Cloudinary console.
+require('dotenv').config({ path: '.env.local' });
 const cloudinary = require('cloudinary').v2;
 
-// Configure with the credentials
 cloudinary.config({
-    cloud_name: 'dma9galgd',
-    api_key: '456435543249879',
-    api_secret: '60x_1SBIs4JsSTAuEtkzbmM38JM',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 async function testCloudinary() {
-    try {
-        console.log('Testing Cloudinary configuration...');
-        console.log('Cloud name:', cloudinary.config().cloud_name);
-
-        // Try to ping/test the config by getting account usage
-        const result = await cloudinary.api.ping();
-        console.log('Cloudinary ping result:', result);
-        console.log('\n✅ Cloudinary is configured correctly!');
-    } catch (error) {
-        console.error('❌ Cloudinary error:', error.message);
-        console.error('Full error:', error);
-    }
+  try {
+    console.log('Testing Cloudinary configuration for cloud:', process.env.CLOUDINARY_CLOUD_NAME || '(missing)');
+    const result = await cloudinary.api.ping();
+    console.log('Cloudinary ping result:', result.status);
+  } catch (error) {
+    console.error('Cloudinary error:', error.message);
+  }
 }
 
 testCloudinary();

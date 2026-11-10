@@ -1,395 +1,240 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+// Organiser dashboard. Reachable only by typing /admin — nothing public links here.
+// The session is checked on the server before any data is sent, and every
+// admin API checks it again independently.
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
-import Navbar from '../../components/Navbar';
-import styles from '../../styles/Admin.module.css';
+import Image from 'next/image';
+import Link from 'next/link';
+import AdminLogin from '@/components/admin/AdminLogin';
+import EnquiriesPanel from '@/components/admin/EnquiriesPanel';
+import BookingsPanel from '@/components/admin/BookingsPanel';
+import { AnnouncementsPanel, SubscribersPanel } from '@/components/admin/ContentPanels';
+import Icon from '@/components/ui/Icon';
+import { api, todayIST } from '@/components/admin/api';
+import { OPEN_STATUSES } from '@/lib/config/crm';
+import { TABLE_BOOKING } from '@/lib/config/tableBooking';
+import { WINTER_CARNIVAL as E } from '@/lib/config/event';
+import { getSession, authConfigured } from '@/lib/server/auth';
+import a from '@/components/admin/admin.module.css';
 
-export default function AdminDashboard() {
-    const [bookings, setBookings] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
+const TABS = [
+  { key: 'overview', label: 'Overview', icon: 'sparkle' },
+  { key: 'enquiries', label: 'Vendor enquiries', icon: 'store' },
+  { key: 'bookings', label: 'Table bookings', icon: 'ticket', hidden: !TABLE_BOOKING.enabled },
+  { key: 'announcements', label: 'Announcements', icon: 'megaphone', adminOnly: true },
+  { key: 'subscribers', label: 'Subscribers', icon: 'mail', adminOnly: true },
+];
 
-    useEffect(() => {
-        const isAdmin = localStorage.getItem('isAdmin');
-        if (!isAdmin) {
-            router.push('/admin/login');
-        } else {
-            fetchBookings();
+function Stat({ label, value, hint, onClick, accent }) {
+  const Tag = onClick ? 'button' : 'div';
+  return (
+    <Tag className={`${a.stat} ${accent ? a.statAccent : ''}`} onClick={onClick}>
+      <span className={a.statLabel}>{label}</span>
+      <span className={a.statValue}>{value}</span>
+      {hint && <span className={a.statHint}>{hint}</span>}
+    </Tag>
+  );
+}
 
-            // Auto-refresh every 10 seconds to keep devices in sync
-            const interval = setInterval(fetchBookings, 10000);
-            return () => clearInterval(interval);
-        }
-    }, []);
+function Breakdown({ title, rows }) {
+  const max = Math.max(1, ...rows.map((r) => r[1]));
+  return (
+    <div className={a.card}>
+      <h3>{title}</h3>
+      {rows.length ? (
+        <ul className={a.bars}>
+          {rows.map(([k, v]) => (
+            <li key={k}>
+              <span>{k}</span>
+              <span className={a.barTrack}>
+                <span className={a.bar} style={{ width: `${(v / max) * 100}%` }} />
+              </span>
+              <strong>{v}</strong>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={a.muted}>No data yet.</p>
+      )}
+    </div>
+  );
+}
 
-    const fetchBookings = async () => {
-        try {
-            const res = await fetch('/api/getBookings');
-            const data = await res.json();
-            setBookings(data.bookings || []);
-        } catch (error) {
-            console.error('Failed to fetch bookings', error);
-        } finally {
-            setLoading(false);
-        }
+function count(list, fn) {
+  const m = new Map();
+  list.forEach((x) => {
+    const k = fn(x) || 'Direct / unknown';
+    m.set(k, (m.get(k) || 0) + 1);
+  });
+  return [...m.entries()].sort((x, y) => y[1] - x[1]).slice(0, 6);
+}
+
+function Dashboard({ session }) {
+  const [tab, setTab] = useState('overview');
+  const [enquiries, setEnquiries] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState({ enq: true, bk: true });
+  const [errors, setErrors] = useState({});
+  const [filter, setFilter] = useState(null);
+  const isAdmin = session.role === 'admin';
+
+  const loadEnquiries = useCallback(async () => {
+    try {
+      const d = await api('/api/admin/enquiries');
+      setEnquiries(d.enquiries);
+      setErrors((e) => ({ ...e, enq: null }));
+    } catch (e) {
+      setErrors((x) => ({ ...x, enq: e.message }));
+    } finally {
+      setLoading((l) => ({ ...l, enq: false }));
+    }
+  }, []);
+  const loadBookings = useCallback(async () => {
+    try {
+      const d = await api('/api/getBookings');
+      setBookings(d.bookings);
+      setErrors((e) => ({ ...e, bk: null }));
+    } catch (e) {
+      setErrors((x) => ({ ...x, bk: e.message }));
+    } finally {
+      setLoading((l) => ({ ...l, bk: false }));
+    }
+  }, []);
+
+  useEffect(() => {
+    loadEnquiries();
+    if (TABLE_BOOKING.enabled) loadBookings();
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadEnquiries();
+        if (TABLE_BOOKING.enabled) loadBookings();
+      }
+    }, 30000);
+    return () => clearInterval(id);
+  }, [loadEnquiries, loadBookings]);
+
+  const stats = useMemo(() => {
+    const today = todayIST();
+    const by = (s) => enquiries.filter((e) => e.status === s).length;
+    const confirmed = by('Confirmed');
+    return {
+      total: enquiries.length,
+      new: by('New'),
+      contacted: by('Contacted'),
+      approved: by('Approved') + by('Payment Pending'),
+      confirmed,
+      followUps: enquiries.filter((e) => e.followUpDate && e.followUpDate <= today && OPEN_STATUSES.includes(e.status)).length,
+      conversion: enquiries.length ? Math.round((confirmed / enquiries.length) * 100) : 0,
+      bookingsActive: bookings.filter((b) => b.status !== 'Cancelled').length,
+      bookingsPending: bookings.filter((b) => b.status === 'Pending Verification').length,
     };
+  }, [enquiries, bookings]);
 
-    const [showForm, setShowForm] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
-        email: '',
-        area: 'Indoor',
-        date: '2025-12-24',
-        timeSlot: '16:00',
-        adults: 1,
-        children: 0,
-        transactionId: '',
-        comments: '',
-    });
+  const go = (t, f = null) => {
+    setFilter(f);
+    setTab(t);
+  };
 
-    const handleStatusUpdate = async (index, booking, status) => {
-        if (!confirm(`Mark this booking as ${status}?`)) return;
+  async function logout() {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    window.location.reload();
+  }
 
-        // Optimistic Update (using array index)
-        const updatedBookings = [...bookings];
-        updatedBookings[index].status = status;
-        setBookings(updatedBookings);
+  return (
+    <div className={a.shell}>
+      <aside className={a.sidebar}>
+        <Link href="/" className={a.sideBrand} aria-label="View public site">
+          <Image src="/brand/poppin-logo.png" alt="Poppin" width={640} height={292} className={a.sideLogo} />
+          <span>Organiser</span>
+        </Link>
+        <nav aria-label="Dashboard">
+          <ul className={a.tabs}>
+            {TABS.filter((t) => !t.hidden && (!t.adminOnly || isAdmin)).map((t) => (
+              <li key={t.key}>
+                <button className={a.tab} aria-current={tab === t.key ? 'page' : undefined} onClick={() => go(t.key)}>
+                  <Icon name={t.icon} size={18} /> {t.label}
+                  {t.key === 'enquiries' && stats.new > 0 && <span className={a.count}>{stats.new}</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className={a.sideFoot}>
+          <p>
+            {session.email}
+            <br />
+            <span className={a.role}>{session.role}</span>
+          </p>
+          <button className={a.tab} onClick={logout}>
+            <Icon name="logout" size={18} /> Log out
+          </button>
+        </div>
+      </aside>
 
-        try {
-            const response = await fetch('/api/updateBookingStatus', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // API Update (using Sheet Row Index)
-                body: JSON.stringify({ rowIndex: booking.rowIndex, status }),
-            });
+      <main className={a.main}>
+        {tab === 'overview' && (
+          <section aria-labelledby="ov-title">
+            <div className={a.panelHead}>
+              <div>
+                <h1 id="ov-title">Overview</h1>
+                <p className={a.muted}>
+                  {E.fullName} · {E.dateLabel} · {E.locationLabel}
+                </p>
+              </div>
+            </div>
+            {errors.enq && <p className={a.error}>Vendor enquiries: {errors.enq}</p>}
+            <div className={a.statGrid}>
+              <Stat label="Total enquiries" value={stats.total} onClick={() => go('enquiries', { status: 'All' })} accent />
+              <Stat label="New" value={stats.new} hint="Not yet contacted" onClick={() => go('enquiries', { status: 'New' })} />
+              <Stat label="Contacted" value={stats.contacted} onClick={() => go('enquiries', { status: 'Contacted' })} />
+              <Stat label="Approved" value={stats.approved} hint="incl. payment pending" onClick={() => go('enquiries', { status: 'Approved' })} />
+              <Stat label="Confirmed stalls" value={stats.confirmed} hint={`${stats.conversion}% of enquiries`} onClick={() => go('enquiries', { status: 'Confirmed' })} />
+              <Stat label="Follow-ups due" value={stats.followUps} hint="Today or overdue" onClick={() => go('enquiries', { followUps: true })} />
+            </div>
+            <div className={a.grid2}>
+              <Breakdown title="Enquiries by category" rows={count(enquiries, (e) => e.category)} />
+              <Breakdown
+                title="Where vendors came from"
+                rows={count(enquiries, (e) => {
+                  const m = (e.source || '').match(/utm_source=([^ ·]+)/) || (e.source || '').match(/ref=([^ ·]+)/);
+                  return m ? m[1] : null;
+                })}
+              />
+            </div>
+            {TABLE_BOOKING.enabled && (
+              <div className={a.statGrid}>
+                <Stat label="Table bookings (active)" value={loading.bk ? '…' : stats.bookingsActive} onClick={() => go('bookings')} />
+                <Stat label="Payments to verify" value={loading.bk ? '…' : stats.bookingsPending} onClick={() => go('bookings')} />
+              </div>
+            )}
+          </section>
+        )}
+        {tab === 'enquiries' && (
+          <EnquiriesPanel enquiries={enquiries} setEnquiries={setEnquiries} role={session.role} loading={loading.enq} initialFilter={filter} />
+        )}
+        {tab === 'bookings' && TABLE_BOOKING.enabled && <BookingsPanel bookings={bookings} reload={loadBookings} loading={loading.bk} error={errors.bk} />}
+        {tab === 'announcements' && isAdmin && <AnnouncementsPanel />}
+        {tab === 'subscribers' && isAdmin && <SubscribersPanel />}
+      </main>
+    </div>
+  );
+}
 
-            if (!response.ok) {
-                // Revert on failure
-                alert('Failed to update status');
-                fetchBookings();
-            }
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert('Error updating status');
-            fetchBookings();
-        }
-    };
+export default function AdminPage({ session, configured }) {
+  return (
+    <>
+      <Head>
+        <title>Organiser dashboard | Poppin</title>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      {session ? <Dashboard session={session} /> : <AdminLogin configured={configured} />}
+    </>
+  );
+}
 
-    const handleCancel = async (index, booking) => {
-        if (!confirm('Are you sure you want to cancel this booking?')) return;
-
-        // Optimistic Update (using array index)
-        const updatedBookings = [...bookings];
-        updatedBookings[index].status = 'Cancelled';
-        setBookings(updatedBookings);
-
-        try {
-            const response = await fetch('/api/cancelBooking', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // API Update (using Sheet Row Index)
-                body: JSON.stringify({ rowIndex: booking.rowIndex }),
-            });
-
-            if (response.ok) {
-                alert('Booking cancelled successfully');
-            } else {
-                alert('Failed to cancel booking');
-                fetchBookings();
-            }
-        } catch (error) {
-            console.error('Error cancelling booking:', error);
-            alert('Error cancelling booking');
-            fetchBookings();
-        }
-    };
-
-    const handleVerifyPayment = async (index, booking) => {
-        if (!confirm(`Verify payment for ${booking.name} (Txn: ${booking.transactionId})? This will confirm the booking.`)) return;
-
-        // Optimistic Update (using array index)
-        const updatedBookings = [...bookings];
-        updatedBookings[index].status = 'Reserved';
-        setBookings(updatedBookings);
-
-        try {
-            const response = await fetch('/api/confirmPayment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // API Update (using Sheet Row Index)
-                body: JSON.stringify({ rowIndex: booking.rowIndex, bookingDetails: booking }),
-            });
-
-            if (response.ok) {
-                alert('Payment verified and booking confirmed!');
-            } else {
-                alert('Failed to verify payment');
-                fetchBookings();
-            }
-        } catch (error) {
-            console.error('Error verifying payment:', error);
-            alert('Error verifying payment');
-            fetchBookings();
-        }
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const totalAmount = (parseInt(formData.adults || 0) + parseInt(formData.children || 0)) * 250;
-
-    const handleOnSpotSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        try {
-            const formDataToSend = new FormData();
-            Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
-            formDataToSend.append('isOnSpot', 'true');
-
-            // No screenshot needed for On-Spot
-
-            const response = await fetch('/api/createBooking', {
-                method: 'POST',
-                body: formDataToSend, // fetch sends FormData as multipart/form-data
-            });
-
-            const resultData = await response.json();
-
-            if (response.ok) {
-                alert(`Booking Successful! Ref ID: #${resultData.data.updates.updatedData.values[0][0] || 'N/A'}`);
-                setShowForm(false);
-                setFormData({
-                    name: '',
-                    phone: '',
-                    email: '',
-                    area: 'Indoor',
-                    date: '2025-12-24',
-                    timeSlot: '16:00',
-                    adults: 1,
-                    children: 0,
-                    transactionId: '',
-                    comments: '',
-                });
-                fetchBookings();
-            } else {
-                alert(resultData.message || 'Booking failed');
-            }
-        } catch (error) {
-            console.error('Error creating booking:', error);
-            alert('An error occurred. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const stats = {
-        total: bookings.length,
-        reserved: bookings.filter(b => b.status === 'Reserved').length,
-        completed: bookings.filter(b => b.status === 'Completed').length,
-        cancelled: bookings.filter(b => b.status === 'Cancelled').length,
-    };
-
-    return (
-        <>
-            <Head>
-                <title>Admin Dashboard - PoppinFlea</title>
-            </Head>
-            <Navbar />
-            <main className={styles.main}>
-                <div className="container">
-                    <h1 className={styles.title}>Dashboard</h1>
-
-                    <div className={styles.statsGrid}>
-                        <div className={styles.statCard}>
-                            <h3>Total Bookings</h3>
-                            <p>{stats.total}</p>
-                        </div>
-                        <div className={styles.statCard}>
-                            <h3>Reserved</h3>
-                            <p>{stats.reserved}</p>
-                        </div>
-                        <div className={styles.statCard}>
-                            <h3>Cancelled</h3>
-                            <p>{stats.cancelled}</p>
-                        </div>
-                    </div>
-
-                    <div style={{ marginBottom: '2rem' }}>
-                        <button
-                            onClick={() => setShowForm(!showForm)}
-                            style={{
-                                padding: '0.75rem 1.5rem',
-                                backgroundColor: '#000',
-                                color: '#FFE103',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: '600',
-                                fontSize: '1rem'
-                            }}
-                        >
-                            {showForm ? 'Close Form' : '+ On-Spot Registration'}
-                        </button>
-
-                        {showForm && (
-                            <form onSubmit={handleOnSpotSubmit} style={{ marginTop: '1rem', padding: '1.5rem', backgroundColor: '#f9fafb', borderRadius: '10px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                                <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
-                                <input type="tel" name="phone" placeholder="Phone" value={formData.phone} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
-                                <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
-                                <select name="area" value={formData.area} onChange={handleInputChange} style={{ padding: '0.5rem' }}>
-                                    <option value="Indoor">Indoor</option>
-                                    <option value="Library (Smoking)">Library (Smoking)</option>
-                                </select>
-                                <select name="date" value={formData.date} onChange={handleInputChange} style={{ padding: '0.5rem' }}>
-                                    <option value="2025-12-24">Dec 24</option>
-                                    <option value="2025-12-25">Dec 25</option>
-                                    <option value="2025-12-26">Dec 26</option>
-                                </select>
-                                <select name="timeSlot" value={formData.timeSlot} onChange={handleInputChange} style={{ padding: '0.5rem' }}>
-                                    {['16:00', '17:00', '18:00', '19:00', '20:00', '21:00'].map(t => (
-                                        <option key={t} value={t}>{t}</option>
-                                    ))}
-                                </select>
-
-                                <input type="number" name="adults" placeholder="Adults" min="1" value={formData.adults} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
-                                <input type="number" name="children" placeholder="Children" min="0" value={formData.children} onChange={handleInputChange} style={{ padding: '0.5rem' }} />
-                                <input type="text" name="transactionId" placeholder="Transaction ID / UTR" value={formData.transactionId} onChange={handleInputChange} required style={{ padding: '0.5rem' }} />
-                                <input type="text" name="comments" placeholder="Comments" value={formData.comments} onChange={handleInputChange} style={{ padding: '0.5rem' }} />
-
-                                <div style={{ gridColumn: '1 / -1', padding: '0.5rem', backgroundColor: '#e5e7eb', borderRadius: '4px', fontWeight: 'bold' }}>
-                                    Total Amount: Rs. {totalAmount} <span style={{ fontWeight: 'normal', fontSize: '0.85rem' }}>({formData.adults} Adults + {formData.children} Children)</span>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    style={{
-                                        gridColumn: '1 / -1',
-                                        padding: '0.75rem',
-                                        backgroundColor: isSubmitting ? '#ccc' : '#FFE103',
-                                        color: '#000',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        fontWeight: 'bold',
-                                        cursor: isSubmitting ? 'not-allowed' : 'pointer'
-                                    }}
-                                >
-                                    {isSubmitting ? 'Booking...' : 'Book Now'}
-                                </button>
-                            </form>
-                        )}
-                    </div>
-
-                    <div className={styles.tableContainer}>
-                        {loading ? (
-                            <p>Loading bookings...</p>
-                        ) : (
-                            <table className={styles.table}>
-                                <thead>
-                                    <tr>
-                                        <th>Ref ID</th>
-                                        <th>Name</th>
-                                        <th>Phone</th>
-                                        <th>Email</th>
-                                        <th>Area</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                        <th>Adults</th>
-                                        <th>Children</th>
-                                        <th>Payment Info</th>
-                                        <th>Comments</th>
-                                        <th>Status</th>
-                                        <th>Manage</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {bookings.map((booking, index) => (
-                                        <tr key={index}>
-                                            <td><strong>#{booking.refId}</strong></td>
-                                            <td>{booking.name}</td>
-                                            <td>{booking.phone}</td>
-                                            <td>{booking.email}</td>
-                                            <td>{booking.area}</td>
-                                            <td>{booking.date}</td>
-                                            <td>{booking.timeSlot || '-'}</td>
-                                            <td>{booking.adults}</td>
-                                            <td>{booking.children}</td>
-                                            <td>
-                                                <div style={{ fontSize: '0.8rem' }}>
-                                                    <div><strong>Txn:</strong> {booking.transactionId || 'N/A'}</div>
-                                                    <div><strong>UPI:</strong> {booking.upiName || 'N/A'}</div>
-                                                    {booking.screenshotLink && (
-                                                        <div style={{ marginTop: '0.25rem' }}>
-                                                            <a href={booking.screenshotLink} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                                                                View Screenshot
-                                                            </a>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={booking.comments}>{booking.comments}</td>
-                                            <td>
-                                                <span className={`${styles.badge} ${styles[booking.status.toLowerCase().replace(' ', '-')]}`}>
-                                                    {booking.status}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
-                                                    {booking.status === 'Pending Verification' && (
-                                                        <button
-                                                            onClick={() => handleVerifyPayment(index, booking)}
-                                                            style={{ padding: '0.25rem 0.5rem', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-                                                            title="Verify Payment & Confirm Booking"
-                                                        >
-                                                            Verify Payment
-                                                        </button>
-                                                    )}
-                                                    {(booking.status === 'Reserved' || booking.status === 'Confirmed') && (
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(index, booking, 'Guest Arrived')}
-                                                            style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-                                                            title="Mark as Guest Arrived"
-                                                        >
-                                                            Guest Arrived
-                                                        </button>
-                                                    )}
-                                                    {booking.status !== 'Cancelled' && booking.status !== 'Guest Arrived' && booking.status !== 'Arrived' && (
-                                                        <button
-                                                            onClick={() => handleCancel(index, booking)}
-                                                            style={{ padding: '0.25rem 0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
-                                                            title="Cancel Booking"
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {bookings.length === 0 && (
-                                        <tr>
-                                            <td colSpan="14" style={{ textAlign: 'center' }}>No bookings found.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </div >
-            </main >
-        </>
-    );
+export function getServerSideProps({ req, res }) {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  return { props: { session: getSession(req), configured: authConfigured() } };
 }

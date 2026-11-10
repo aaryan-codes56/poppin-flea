@@ -1,446 +1,267 @@
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Navbar from '../components/Navbar';
-import styles from '../styles/Book.module.css';
+// Customer table booking — the original flow (form → UPI payment → screenshot
+// → pending verification), restyled and driven by lib/config/tableBooking.js.
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import Layout from '@/components/layout/Layout';
+import PageHeader from '@/components/layout/PageHeader';
+import Icon from '@/components/ui/Icon';
+import { TABLE_BOOKING } from '@/lib/config/tableBooking';
+import { WINTER_CARNIVAL as E } from '@/lib/config/event';
+import f from '@/components/forms/forms.module.css';
+import p from '@/styles/pages.module.css';
+
+const INITIAL = {
+  name: '', phone: '', email: '', area: TABLE_BOOKING.areas[1]?.name || TABLE_BOOKING.areas[0].name,
+  date: '', timeSlot: TABLE_BOOKING.timeSlots[0], adults: 1, children: 0, comments: '',
+};
+
+function Closed() {
+  return (
+    <section className="section bg-cream">
+      <div className={`container-narrow ${p.legal}`}>
+        <h2>Table bookings are closed right now</h2>
+        <p>
+          Table reservations were available for {TABLE_BOOKING.edition} at {TABLE_BOOKING.venue.name}. If table bookings open for {E.fullName}, you’ll
+          be able to reserve here once the venue is announced.
+        </p>
+        <div className="btn-row">
+          <Link href="/winter-carnival" className="btn btn-burgundy">
+            Winter Carnival 2026 <Icon name="arrowRight" />
+          </Link>
+          <Link href="/book-a-stall" className="btn btn-outline">
+            Book a stall instead
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function Book() {
-    const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
-        email: '',
-        area: 'Library (Smoking)',
-        date: '',
-        timeSlot: '16:00',
-        adults: 1,
-        children: 0,
-        comments: '',
-    });
+  const [form, setForm] = useState(INITIAL);
+  const [payment, setPayment] = useState({ transactionId: '', upiName: '', screenshot: null });
+  const [status, setStatus] = useState('idle');
+  const [message, setMessage] = useState('');
+  const [showPayment, setShowPayment] = useState(false);
+  const [availability, setAvailability] = useState({});
+  const [refId, setRefId] = useState('');
 
-    const [paymentData, setPaymentData] = useState({
-        transactionId: '',
-        upiName: '',
-        screenshot: null,
-    });
+  useEffect(() => {
+    if (!form.date) return;
+    fetch(`/api/getSlots?date=${encodeURIComponent(form.date)}`)
+      .then((r) => r.json())
+      .then((d) => setAvailability(d.availability || {}))
+      .catch(() => setAvailability({}));
+  }, [form.date]);
 
-    const [status, setStatus] = useState('idle'); // idle, loading, success, error
-    const [message, setMessage] = useState('');
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [availability, setAvailability] = useState({});
-    const [loadingSlots, setLoadingSlots] = useState(false);
+  useEffect(() => {
+    if (!showPayment) return;
+    const onKey = (e) => e.key === 'Escape' && setShowPayment(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showPayment]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handlePaymentChange = (e) => {
-        const { name, value, files } = e.target;
-        if (name === 'screenshot') {
-            setPaymentData((prev) => ({ ...prev, screenshot: files[0] }));
-        } else {
-            setPaymentData((prev) => ({ ...prev, [name]: value }));
-        }
-    };
-
-    // Fetch slots when date changes
-    useEffect(() => {
-        if (formData.date) {
-            fetchSlots(formData.date);
-        }
-    }, [formData.date]);
-
-    const fetchSlots = async (date) => {
-        setLoadingSlots(true);
-        try {
-            const res = await fetch(`/api/getSlots?date=${date}`);
-            const data = await res.json();
-            setAvailability(data.availability || {});
-        } catch (error) {
-            console.error('Failed to fetch slots', error);
-        } finally {
-            setLoadingSlots(false);
-        }
-    };
-
-    // Auto-clamp adults count if it exceeds capacity when switching areas/slots
-    useEffect(() => {
-        const slotInfo = availability[formData.timeSlot]?.[formData.area];
-        if (slotInfo) {
-            const limit = slotInfo.limit || 0;
-            const count = slotInfo.count || 0;
-            const remaining = Math.max(0, limit - count);
-
-            // If current adults selection is higher than remaining, clamp it
-            if (parseInt(formData.adults) > remaining) {
-                // If remaining is 0, we can't really set to 0 as min is 1, but user can't submit anyway
-                // We set to remaining if > 0, else keep as is (validation will catch it) or set to 1
-                if (remaining > 0) {
-                    setFormData(prev => ({ ...prev, adults: remaining }));
-                }
-            }
-        }
-    }, [formData.area, formData.timeSlot, formData.date, availability]);
-
-    const handleInitialSubmit = (e) => {
-        e.preventDefault();
-
-        // Date validation
-        const allowedDates = ['2025-12-24', '2025-12-25', '2025-12-26'];
-        if (!allowedDates.includes(formData.date)) {
-            setStatus('error');
-            setMessage('Please select a valid date: Dec 24, 25, or 26.');
-            return;
-        }
-
-        // Check capacity limits
-        const slotInfo = availability[formData.timeSlot]?.[formData.area];
-        if (slotInfo) {
-            const currentCount = slotInfo.count || 0;
-            const limit = slotInfo.limit || 0;
-            const requestedAdults = parseInt(formData.adults || 0, 10);
-
-            if (currentCount >= limit) {
-                setStatus('error');
-                setMessage('Selected time slot is full for this area. Please choose another.');
-                return;
-            }
-
-            if (currentCount + requestedAdults > limit) {
-                const remaining = Math.max(0, limit - currentCount);
-                setStatus('error');
-                setMessage(`Only ${remaining} spot${remaining !== 1 ? 's' : ''} left for this slot. Please reduce adults or choose another slot.`);
-                return;
-            }
-        }
-
-        setShowPaymentModal(true);
-    };
-
-    const handleFinalSubmit = async (e) => {
-        e.preventDefault();
-        setStatus('loading');
-        setMessage('');
-
-        const data = new FormData();
-        // Append form data
-        Object.keys(formData).forEach(key => data.append(key, formData[key]));
-        // Append payment data
-        data.append('transactionId', paymentData.transactionId);
-        data.append('upiName', paymentData.upiName);
-        if (paymentData.screenshot) {
-            data.append('screenshot', paymentData.screenshot);
-        }
-
-        try {
-            const response = await fetch('/api/createBooking', {
-                method: 'POST',
-                body: data, // fetch automatically sets Content-Type to multipart/form-data
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                setStatus('success');
-                setMessage('Booking Request Received! We will verify your payment and confirm via email shortly.');
-                setShowPaymentModal(false);
-                setFormData({
-                    name: '',
-                    phone: '',
-                    email: '',
-                    area: 'Library (Smoking)',
-                    date: '',
-                    timeSlot: '16:00',
-                    adults: 1,
-                    children: 0,
-                    comments: '',
-                });
-                setPaymentData({
-                    transactionId: '',
-                    upiName: '',
-                    screenshot: null,
-                });
-            } else {
-                setStatus('error');
-                setMessage(result.message || 'Something went wrong. Please try again.');
-                setShowPaymentModal(false);
-            }
-        } catch (error) {
-            setStatus('error');
-            setMessage('Failed to submit booking. Please check your connection.');
-            setShowPaymentModal(false);
-        }
-    };
-
-    const timeSlots = ["16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
-
-    const totalPrice = (parseInt(formData.adults || 0) + parseInt(formData.children || 0)) * 250;
-
-    // Calculate remaining capacity for current selection
-    const currentSlotInfo = availability[formData.timeSlot]?.[formData.area];
-    const maxCapacity = currentSlotInfo ? Math.max(0, (currentSlotInfo.limit || 0) - (currentSlotInfo.count || 0)) : 16; // Default to 16 if not loaded
-
-
+  if (!TABLE_BOOKING.enabled) {
     return (
-        <>
-            <Head>
-                <title>Book a Table - PoppinFlea</title>
-            </Head>
-            <Navbar />
-            <main className={styles.main}>
-                <div className="container">
-                    <div className={styles.formContainer}>
-                        <h1 className={styles.title}>Reserve Your Spot</h1>
-                        <p className={styles.subtitle}>Fill in the details below to book your table.</p>
-
-                        {status === 'success' ? (
-                            <div className={styles.successMessage}>
-                                <h2>🎉 Request Received!</h2>
-                                <p>{message}</p>
-                                <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '1rem' }}>
-                                    Please check your email for the "Pending Verification" status.
-                                    Once we verify your payment (approx 12-15 hrs), you'll get a confirmation email.
-                                </p>
-                                <button onClick={() => setStatus('idle')} className="btn-primary" style={{ marginTop: '1rem' }}>Book Another</button>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleInitialSubmit} className={styles.form}>
-                                <div className={styles.grid}>
-                                    <div className={styles.field}>
-                                        <label htmlFor="name">Full Name</label>
-                                        <input type="text" id="name" name="name" required value={formData.name} onChange={handleChange} placeholder="Krish Prakash" />
-                                    </div>
-                                    <div className={styles.field}>
-                                        <label htmlFor="phone">Phone Number</label>
-                                        <input type="tel" id="phone" name="phone" required value={formData.phone} onChange={handleChange} placeholder="+91 12345 67890" />
-                                    </div>
-                                </div>
-
-                                <div className={styles.field}>
-                                    <label htmlFor="email">Email Address</label>
-                                    <input type="email" id="email" name="email" required value={formData.email} onChange={handleChange} placeholder="krish@example.com" />
-                                </div>
-
-                                <div className={styles.grid}>
-                                    <div className={styles.field}>
-                                        <label htmlFor="date">Date</label>
-                                        <select id="date" name="date" required value={formData.date} onChange={handleChange}>
-                                            <option value="">Select a date</option>
-                                            <option value="2025-12-24">Dec 24 (Wed) - Christmas Eve</option>
-                                            <option value="2025-12-25">Dec 25 (Thu) - Christmas Day</option>
-                                            <option value="2025-12-26">Dec 26 (Fri) - Post Christmas</option>
-                                        </select>
-                                    </div>
-                                    <div className={styles.field}>
-                                        <label htmlFor="area">Select Area</label>
-                                        <select id="area" name="area" value={formData.area} onChange={handleChange}>
-                                            <option value="Library (Smoking)">Library (Smoking)</option>
-                                            <option value="Indoor">Indoor</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className={styles.field}>
-                                    <label>Time Slot <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>(45 mins per slot)</span></label>
-                                    <div className={styles.timeSlotGrid}>
-                                        {timeSlots.map(slot => {
-                                            const slotInfo = availability[slot]?.[formData.area];
-                                            const statusColor = slotInfo?.status || 'green'; // default green if not fetched yet
-                                            const isFull = statusColor === 'red';
-
-                                            let borderColor = '#22c55e'; // green
-                                            if (statusColor === 'yellow') borderColor = '#eab308';
-                                            if (statusColor === 'red') borderColor = '#ef4444';
-
-                                            // Only calculate/show remaining if date is selected and we have slot info
-                                            const showRemaining = formData.date && slotInfo;
-                                            const remaining = showRemaining
-                                                ? Math.max(0, (slotInfo.limit || 0) - (slotInfo.count || 0))
-                                                : null;
-
-                                            return (
-                                                <div key={slot} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                    <button
-                                                        type="button"
-                                                        disabled={isFull}
-                                                        onClick={() => setFormData(prev => ({ ...prev, timeSlot: slot }))}
-                                                        style={{
-                                                            padding: '0.5rem',
-                                                            border: `2px solid ${borderColor}`,
-                                                            backgroundColor: formData.timeSlot === slot ? borderColor : 'white',
-                                                            color: formData.timeSlot === slot ? 'white' : 'black',
-                                                            borderRadius: '8px',
-                                                            cursor: isFull ? 'not-allowed' : 'pointer',
-                                                            opacity: isFull ? 0.6 : 1,
-                                                            fontWeight: 'bold',
-                                                            width: '100%'
-                                                        }}
-                                                    >
-                                                        {slot}
-                                                    </button>
-                                                    {showRemaining && (
-                                                        <span style={{
-                                                            fontSize: '0.7rem',
-                                                            textAlign: 'center',
-                                                            color: isFull ? '#ef4444' : '#666',
-                                                            fontWeight: '500'
-                                                        }}>
-                                                            {isFull ? 'Full' : `${remaining} left`}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
-                                        <span style={{ color: '#22c55e' }}>●</span> Available &nbsp;
-                                        <span style={{ color: '#eab308' }}>●</span> Filling Fast &nbsp;
-                                        <span style={{ color: '#ef4444' }}>●</span> Full
-                                    </p>
-                                </div>
-
-                                <div className={styles.grid}>
-                                    <div className={styles.field}>
-                                        <label htmlFor="adults">Adults</label>
-                                        <input
-                                            type="number"
-                                            id="adults"
-                                            name="adults"
-                                            min="1"
-                                            max={maxCapacity}
-                                            required
-                                            value={formData.adults}
-                                            onChange={handleChange}
-                                        />
-                                        {formData.date && currentSlotInfo && (
-                                            <small style={{ color: maxCapacity < 4 ? '#ef4444' : '#666' }}>
-                                                Max {maxCapacity} spots left
-                                            </small>
-                                        )}
-                                    </div>
-                                    <div className={styles.field}>
-                                        <label htmlFor="children">Children</label>
-                                        <input type="number" id="children" name="children" min="0" required value={formData.children} onChange={handleChange} />
-                                    </div>
-                                </div>
-
-                                <div className={styles.field}>
-                                    <label htmlFor="comments">Special Requests</label>
-                                    <textarea id="comments" name="comments" rows="3" value={formData.comments} onChange={handleChange} placeholder="Any special requests?" style={{ padding: '0.75rem', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius-lg)', fontFamily: 'inherit', fontSize: '1rem', resize: 'vertical' }} />
-                                </div>
-
-                                {status === 'error' && <p className={styles.error}>{message}</p>}
-
-                                <button type="submit" className={`btn-primary ${styles.submitBtn}`}>
-                                    Proceed to Payment
-                                </button>
-                                <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#666' }}>
-                                    For any queries: <strong>8709294143 / 9334227855</strong>
-                                </p>
-                            </form>
-                        )}
-                    </div>
-                </div>
-
-                {/* Payment Modal */}
-                {showPaymentModal && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modalContent}>
-                            <button
-                                onClick={() => setShowPaymentModal(false)}
-                                className={styles.closeBtn}
-                            >
-                                ✕
-                            </button>
-
-                            <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Scan to Pay</h2>
-
-                            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                                <img
-                                    src="/payment-qr.png"
-                                    alt="Payment QR Code"
-                                    style={{ width: '250px', height: 'auto', border: '1px solid #ddd', borderRadius: '8px' }}
-                                />
-                                <p style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#666' }}>Scan with any UPI App</p>
-                                <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>
-                                    Issues paying? Call <strong>8709294143 / 9334227855</strong>
-                                </p>
-                                <div style={{ marginTop: '1rem', padding: '0.5rem', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
-                                    <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1.1rem' }}>Total Amount: Rs. {totalPrice}</p>
-                                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>({formData.adults} Adults + {formData.children} Children) x Rs. 250</p>
-                                </div>
-                            </div>
-
-                            <form onSubmit={handleFinalSubmit}>
-                                <div className={styles.field} style={{ marginBottom: '1rem' }}>
-                                    <label htmlFor="transactionId">Transaction ID / UTR</label>
-                                    <input
-                                        type="text"
-                                        id="transactionId"
-                                        name="transactionId"
-                                        required
-                                        value={paymentData.transactionId}
-                                        onChange={handlePaymentChange}
-                                        placeholder="e.g. 123456789012"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #ccc' }}
-                                    />
-                                </div>
-                                <div className={styles.field} style={{ marginBottom: '1rem' }}>
-                                    <label htmlFor="upiName">Name on UPI</label>
-                                    <input
-                                        type="text"
-                                        id="upiName"
-                                        name="upiName"
-                                        required
-                                        value={paymentData.upiName}
-                                        onChange={handlePaymentChange}
-                                        placeholder="e.g. Krish Prakash"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #ccc' }}
-                                    />
-                                </div>
-                                <div className={styles.field} style={{ marginBottom: '1.5rem' }}>
-                                    <label htmlFor="screenshot">Payment Screenshot <span style={{ color: '#dc2626' }}>*</span></label>
-                                    <input
-                                        type="file"
-                                        id="screenshot"
-                                        name="screenshot"
-                                        accept="image/*"
-                                        required
-                                        onChange={handlePaymentChange}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #ccc' }}
-                                    />
-                                    <p style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '0.25rem' }}>Required for payment verification</p>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                                    disabled={status === 'loading'}
-                                >
-                                    {status === 'loading' ? (
-                                        <>
-                                            <span style={{
-                                                width: '16px',
-                                                height: '16px',
-                                                border: '2px solid #000',
-                                                borderTopColor: 'transparent',
-                                                borderRadius: '50%',
-                                                animation: 'spin 1s linear infinite'
-                                            }}></span>
-                                            Uploading & Submitting...
-                                        </>
-                                    ) : 'Confirm Booking'}
-                                </button>
-                                <style jsx>{`
-                                    @keyframes spin {
-                                        to { transform: rotate(360deg); }
-                                    }
-                                `}</style>
-                            </form>
-                        </div>
-                    </div>
-                )}
-            </main>
-        </>
+      <Layout seo={{ title: 'Table bookings', noindex: true }}>
+        <PageHeader eyebrow="Table reservations" title="Reserve a table" />
+        <Closed />
+      </Layout>
     );
+  }
+
+  const slotInfo = availability[form.timeSlot]?.[form.area];
+  const remaining = slotInfo ? Math.max(0, slotInfo.limit - slotInfo.count) : null;
+  const total = (Number(form.adults || 0) + Number(form.children || 0)) * TABLE_BOOKING.pricePerGuest;
+  const onChange = (e) => setForm((x) => ({ ...x, [e.target.name]: e.target.value }));
+
+  function proceed(e) {
+    e.preventDefault();
+    setMessage('');
+    if (!TABLE_BOOKING.dates.some((d) => d.value === form.date)) {
+      setStatus('error');
+      setMessage('Please select a valid date.');
+      return;
+    }
+    if (remaining !== null && Number(form.adults) > remaining) {
+      setStatus('error');
+      setMessage(remaining === 0 ? 'This slot is full for the selected area.' : `Only ${remaining} spot${remaining !== 1 ? 's' : ''} left for this slot.`);
+      return;
+    }
+    setStatus('idle');
+    setShowPayment(true);
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    if (status === 'loading') return;
+    setStatus('loading');
+    const data = new FormData();
+    Object.entries(form).forEach(([k, v]) => data.append(k, v));
+    data.append('transactionId', payment.transactionId);
+    data.append('upiName', payment.upiName);
+    if (payment.screenshot) data.append('screenshot', payment.screenshot);
+    try {
+      const res = await fetch('/api/createBooking', { method: 'POST', body: data });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || 'Something went wrong.');
+      setRefId(json.refId);
+      setStatus('success');
+      setShowPayment(false);
+      setForm(INITIAL);
+      setPayment({ transactionId: '', upiName: '', screenshot: null });
+    } catch (err) {
+      setStatus('error');
+      setMessage(err.message);
+      setShowPayment(false);
+    }
+  }
+
+  return (
+    <Layout seo={{ title: 'Reserve a table', description: `Reserve a table at ${TABLE_BOOKING.venue.name} for ${TABLE_BOOKING.edition}.` }}>
+      <PageHeader eyebrow={TABLE_BOOKING.edition} title="Reserve your table" intro={`${TABLE_BOOKING.venue.name}, ${TABLE_BOOKING.venue.address}`} />
+      <section className="section bg-cream">
+        <div className="container-narrow">
+          <div className={p.formCard}>
+            {status === 'success' ? (
+              <div className={f.success} role="status">
+                <span className={f.successIcon}>
+                  <Icon name="check" size={30} />
+                </span>
+                <h2>Request received!</h2>
+                <p className={f.refBox}>
+                  <span>Reference ID · Pending verification</span>
+                  <strong>#{refId}</strong>
+                </p>
+                <p className="muted">We’ll verify your payment (approx. 12–15 hrs) and email your confirmation.</p>
+                <button className="btn btn-burgundy" onClick={() => setStatus('idle')}>
+                  Book another
+                </button>
+              </div>
+            ) : (
+              <form className={f.form} onSubmit={proceed}>
+                <div className={f.grid2}>
+                  <div className={f.field}>
+                    <label className={f.label} htmlFor="name">Full name</label>
+                    <input className={f.input} id="name" name="name" required value={form.name} onChange={onChange} autoComplete="name" />
+                  </div>
+                  <div className={f.field}>
+                    <label className={f.label} htmlFor="phone">Phone</label>
+                    <input className={f.input} id="phone" name="phone" type="tel" required value={form.phone} onChange={onChange} autoComplete="tel" />
+                  </div>
+                </div>
+                <div className={f.field}>
+                  <label className={f.label} htmlFor="email">Email</label>
+                  <input className={f.input} id="email" name="email" type="email" required value={form.email} onChange={onChange} autoComplete="email" />
+                </div>
+                <div className={f.grid2}>
+                  <div className={f.field}>
+                    <label className={f.label} htmlFor="date">Date</label>
+                    <select className={f.input} id="date" name="date" required value={form.date} onChange={onChange}>
+                      <option value="">Select a date</option>
+                      {TABLE_BOOKING.dates.map((d) => (
+                        <option key={d.value} value={d.value}>{d.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={f.field}>
+                    <label className={f.label} htmlFor="area">Area</label>
+                    <select className={f.input} id="area" name="area" value={form.area} onChange={onChange}>
+                      {TABLE_BOOKING.areas.map((a) => (
+                        <option key={a.name}>{a.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <fieldset className={f.fieldset}>
+                  <legend className={f.label}>Time slot ({TABLE_BOOKING.slotMinutes} mins)</legend>
+                  <div className={p.slotGrid}>
+                    {TABLE_BOOKING.timeSlots.map((slot) => {
+                      const info = availability[slot]?.[form.area];
+                      const full = info?.status === 'red';
+                      const left = form.date && info ? Math.max(0, info.limit - info.count) : null;
+                      return (
+                        <button
+                          type="button"
+                          key={slot}
+                          className={`${p.slot} ${p[`slot_${info?.status || 'green'}`]}`}
+                          aria-pressed={form.timeSlot === slot}
+                          disabled={full}
+                          onClick={() => setForm((x) => ({ ...x, timeSlot: slot }))}
+                        >
+                          {slot}
+                          {left !== null && <small>{full ? 'Full' : `${left} left`}</small>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+                <div className={f.grid2}>
+                  <div className={f.field}>
+                    <label className={f.label} htmlFor="adults">Adults</label>
+                    <input className={f.input} id="adults" name="adults" type="number" min="1" max={remaining ?? undefined} required value={form.adults} onChange={onChange} />
+                  </div>
+                  <div className={f.field}>
+                    <label className={f.label} htmlFor="children">Children</label>
+                    <input className={f.input} id="children" name="children" type="number" min="0" value={form.children} onChange={onChange} />
+                  </div>
+                </div>
+                <div className={f.field}>
+                  <label className={f.label} htmlFor="comments">Special requests</label>
+                  <textarea className={f.input} id="comments" name="comments" rows={3} value={form.comments} onChange={onChange} />
+                </div>
+                {status === 'error' && <p className={f.alert} role="alert">{message}</p>}
+                <button type="submit" className="btn btn-primary btn-lg">
+                  Proceed to payment <Icon name="arrowRight" />
+                </button>
+                <p className={f.hint}>For any queries: {TABLE_BOOKING.queriesPhone}</p>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {showPayment && (
+        <div className={p.modal} role="dialog" aria-modal="true" aria-labelledby="pay-title" onClick={() => setShowPayment(false)}>
+          <div className={p.modalCard} onClick={(e) => e.stopPropagation()}>
+            <button className={p.modalClose} onClick={() => setShowPayment(false)} aria-label="Close payment">
+              <Icon name="close" />
+            </button>
+            <h2 id="pay-title">Scan to pay</h2>
+            <Image src="/payment-qr.png" alt="UPI payment QR code" width={240} height={340} className={p.qr} />
+            <p className={p.total}>
+              Total: Rs. {total}
+              <small>
+                ({form.adults} adults + {form.children} children) × Rs. {TABLE_BOOKING.pricePerGuest}
+              </small>
+            </p>
+            <form onSubmit={submit} className={f.form}>
+              <div className={f.field}>
+                <label className={f.label} htmlFor="transactionId">Transaction ID / UTR</label>
+                <input className={f.input} id="transactionId" required value={payment.transactionId} onChange={(e) => setPayment((x) => ({ ...x, transactionId: e.target.value }))} />
+              </div>
+              <div className={f.field}>
+                <label className={f.label} htmlFor="upiName">Name on UPI</label>
+                <input className={f.input} id="upiName" required value={payment.upiName} onChange={(e) => setPayment((x) => ({ ...x, upiName: e.target.value }))} />
+              </div>
+              <div className={f.field}>
+                <label className={f.label} htmlFor="screenshot">Payment screenshot (max 5 MB)</label>
+                <input className={f.input} id="screenshot" type="file" accept="image/*" required onChange={(e) => setPayment((x) => ({ ...x, screenshot: e.target.files[0] }))} />
+              </div>
+              <button type="submit" className="btn btn-primary btn-lg" disabled={status === 'loading'}>
+                {status === 'loading' ? 'Uploading & submitting…' : 'Confirm booking'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </Layout>
+  );
+}
+
+// While table bookings are switched off, send visitors to the stall enquiry page.
+export function getServerSideProps() {
+  if (!TABLE_BOOKING.enabled) return { redirect: { destination: '/book-a-stall', permanent: false } };
+  return { props: {} };
 }

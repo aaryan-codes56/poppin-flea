@@ -1,49 +1,20 @@
-import { google } from 'googleapis';
+import { withAdmin } from '@/lib/server/auth';
+import { setStatus } from '@/lib/server/bookings';
+import { BOOKING_STATUSES } from '@/lib/config/tableBooking';
+import { body } from '@/lib/server/validate';
 
-export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ message: 'Method not allowed' });
-    }
-
-    try {
-        const { rowIndex, status } = req.body;
-
-        if (rowIndex === undefined || rowIndex === null || !status) {
-            return res.status(400).json({ message: 'Missing row index or status' });
-        }
-
-        const auth = new google.auth.GoogleAuth({
-            credentials: {
-                client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-                private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            },
-            scopes: [
-                'https://www.googleapis.com/auth/drive',
-                'https://www.googleapis.com/auth/drive.file',
-                'https://www.googleapis.com/auth/spreadsheets',
-            ],
-        });
-
-        const sheets = google.sheets({ version: 'v4', auth });
-        const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-
-        // The status column is column L (12th column, index 11)
-        // Row index from client is the ACTUAL sheet row number
-        const sheetRowNumber = rowIndex;
-        const range = `Sheet1!N${sheetRowNumber}`; // Column N is Status
-
-        await sheets.spreadsheets.values.update({
-            spreadsheetId,
-            range,
-            valueInputOption: 'USER_ENTERED',
-            requestBody: {
-                values: [[status]],
-            },
-        });
-
-        res.status(200).json({ message: 'Booking status updated successfully' });
-    } catch (error) {
-        console.error('Google Sheets API Error:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error.message });
-    }
+async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
+  const { rowIndex, status } = body(req);
+  if (!Number.isInteger(Number(rowIndex)) || Number(rowIndex) < 2) return res.status(400).json({ message: 'Invalid row index' });
+  if (!BOOKING_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid status' });
+  try {
+    await setStatus(rowIndex, status);
+    return res.status(200).json({ message: 'Booking status updated successfully' });
+  } catch (error) {
+    console.error('updateBookingStatus error:', error.message);
+    return res.status(500).json({ message: 'Could not update status' });
+  }
 }
+
+export default withAdmin(handler);

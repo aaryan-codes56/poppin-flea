@@ -1,94 +1,53 @@
-import Head from 'next/head';
-import Link from 'next/link';
-import Navbar from '../components/Navbar';
-import styles from '../styles/Home.module.css';
+import Layout from '@/components/layout/Layout';
+import PageHeader from '@/components/layout/PageHeader';
+import { CONTACT } from '@/lib/config/site';
+import { TABLE_BOOKING } from '@/lib/config/tableBooking';
+import p from '@/styles/pages.module.css';
+
+// Table reservation terms are preserved word for word from the original site.
+const TABLE_TERMS = [
+  ['Table Confirmation', 'Your table is confirmed only after successful payment.'],
+  ['Voucher Collection', 'The amount paid during reservation will be reimbursed in your final bill. Please collect your voucher from the Reception at the entry gate upon arrival.'],
+  ['Table Duration', 'Each table is reserved for 45 minutes. A 15-minute buffer is provided for arrival delays. Extra time cannot be guaranteed during peak hours.'],
+  ['Late Arrival', 'If you arrive after the 15-minute buffer, the table may be released to the next guest without refund.'],
+  ['Crowd & Seating Policy', 'Poppin is a high-footfall event. Standing for long durations near tables or blocking walkways is not allowed.'],
+  ['Behaviour & Conduct', 'Guests are expected to maintain respectful behaviour toward crew, vendors, and fellow guests. Poppin reserves the right to refuse service in case of misbehaviour.'],
+  ['Non-Transferable', 'Table reservations and vouchers are non-transferable and must be used on the same day.'],
+  ['Event Conditions', 'Entry, seating, and table allocation are subject to crowd flow and safety protocols.'],
+  ['No Cash Refunds', 'Reservation amounts are not refundable in cash and can only be adjusted against the final bill.'],
+  ['Management Rights', 'Poppin management reserves the right to make final decisions in the interest of safety and smooth operations.'],
+];
 
 export default function Terms() {
-    return (
-        <>
-            <Head>
-                <title>Terms & Conditions - Poppin</title>
-                <meta name="description" content="Terms and Conditions for Poppin Table Reservations" />
-            </Head>
+  return (
+    <Layout seo={{ title: 'Terms & conditions', description: 'Terms for using the Poppin website, stall enquiries and table reservations.' }}>
+      <PageHeader eyebrow="Legal" title="Terms & conditions" />
+      <section className="section bg-cream">
+        <div className={`container-narrow ${p.legal}`}>
+          <h2>Website and stall enquiries</h2>
+          <ol>
+            <li>Submitting a stall enquiry does not reserve or confirm a stall. A stall is confirmed only when the Poppin team confirms it with you directly.</li>
+            <li>Stall pricing, sizes, inclusions, payment and refund terms are shared by the team and apply only once confirmed in writing.</li>
+            <li>Poppin may accept or decline any application to keep a balanced, high-quality mix of brands.</li>
+            <li>Event details (including venue and timings) may change; official updates are published on this website and on {CONTACT.instagramHandle}.</li>
+            <li>Brand names and logos shown belong to their owners and are shown to reflect past participation or partnership.</li>
+          </ol>
 
-            <Navbar />
-
-            <main style={{ padding: '2rem 0', minHeight: '80vh' }}>
-                <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}>
-                    <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', marginBottom: '1.5rem', textAlign: 'center', lineHeight: 1.3 }}>
-                        Poppin Table Reservation
-                        <br />
-                        <span style={{ color: 'var(--primary-yellow)' }}>Terms & Conditions</span>
-                    </h1>
-
-                    <div style={{ background: 'white', padding: 'clamp(1rem, 4vw, 2rem)', borderRadius: '1rem', boxShadow: 'var(--shadow-lg)' }}>
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>1. Table Confirmation</h2>
-                            <p style={{ color: '#6b7280' }}>Your table is confirmed only after successful payment.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>2. Voucher Collection</h2>
-                            <p style={{ color: '#6b7280' }}>The amount paid during reservation will be reimbursed in your final bill. Please collect your voucher from the Reception at the entry gate upon arrival.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>3. Table Duration</h2>
-                            <p style={{ color: '#6b7280' }}>Each table is reserved for 45 minutes. A 15-minute buffer is provided for arrival delays. Extra time cannot be guaranteed during peak hours.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>4. Late Arrival</h2>
-                            <p style={{ color: '#6b7280' }}>If you arrive after the 15-minute buffer, the table may be released to the next guest without refund.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>5. Crowd & Seating Policy</h2>
-                            <p style={{ color: '#6b7280' }}>Poppin is a high-footfall event. Standing for long durations near tables or blocking walkways is not allowed.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>6. Behaviour & Conduct</h2>
-                            <p style={{ color: '#6b7280' }}>Guests are expected to maintain respectful behaviour toward crew, vendors, and fellow guests. Poppin reserves the right to refuse service in case of misbehaviour.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>7. Non-Transferable</h2>
-                            <p style={{ color: '#6b7280' }}>Table reservations and vouchers are non-transferable and must be used on the same day.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>8. Event Conditions</h2>
-                            <p style={{ color: '#6b7280' }}>Entry, seating, and table allocation are subject to crowd flow and safety protocols.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>9. No Cash Refunds</h2>
-                            <p style={{ color: '#6b7280' }}>Reservation amounts are not refundable in cash and can only be adjusted against the final bill.</p>
-                        </section>
-
-                        <section style={{ marginBottom: '0' }}>
-                            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#374151' }}>10. Management Rights</h2>
-                            <p style={{ color: '#6b7280' }}>Poppin management reserves the right to make final decisions in the interest of safety and smooth operations.</p>
-                        </section>
-                    </div>
-
-                    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-                        <Link href="/book" className="btn-primary">
-                            Book a Table
-                        </Link>
-                    </div>
-                </div>
-            </main>
-
-            <footer className={styles.footer}>
-                <div className="container">
-                    <p>&copy; {new Date().getFullYear()} Poppin. All rights reserved.</p>
-                    <Link href="/terms" style={{ color: '#6b7280', textDecoration: 'underline', fontSize: '0.9rem' }}>
-                        Terms & Conditions
-                    </Link>
-                </div>
-            </footer>
-        </>
-    );
+          {TABLE_BOOKING.enabled && (
+            <>
+              <h2>Table reservations</h2>
+              <ol>
+                {TABLE_TERMS.map(([t, d]) => (
+                  <li key={t}>
+                    <strong>{t}.</strong> {d}
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+          <p>Questions? Call or WhatsApp {CONTACT.phone}.</p>
+        </div>
+      </section>
+    </Layout>
+  );
 }
