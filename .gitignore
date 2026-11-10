@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next
 /out/
 
 # production
@@ -43,3 +44,6 @@ next-env.d.ts
 
 # local development data (vendor enquiries, bookings, subscribers)
 /.data/
+
+# Next.js build cache kept outside iCloud sync (".nosync"); .next is a symlink to it
+/.next.nosync/

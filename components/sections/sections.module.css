@@ -47,6 +47,8 @@
 }
 .heroCopy {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 1.15rem;
   justify-items: start;
 }
@@ -232,6 +234,7 @@
 /* Event facts */
 .facts {
   list-style: none;
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem 1.4rem;
@@ -793,8 +796,13 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
 }
 @media (max-width: 560px) {
+  .partnerGrid:not(.partnerGridFeature) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .partnerInner {
     padding: 1rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .partnerName {
     font-size: 1.1rem;
@@ -1045,12 +1053,29 @@ a.partnerInner:hover {
 }
 @media (max-width: 760px) {
   .statsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .statItem:nth-child(3) {
-    border-left: 0;
+  .statItem {
+    padding-inline: 0.6rem;
   }
-  .statItem:nth-child(n + 3) {
+  .statNum {
+    font-size: 2.2rem;
+  }
+  .statLabel {
+    font-size: 0.78rem;
+    line-height: 1.25;
+  }
+  .statSub {
+    display: none;
+  }
+  .statCta {
+    grid-column: 1 / -1;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 0 !important;
+  }
+  .statCta {
     border-top: 1px solid rgba(227, 201, 135, 0.15);
   }
 }

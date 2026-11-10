@@ -71,10 +71,8 @@ export default function EnquiryForm() {
     if (errors[name]) setErrors((e) => ({ ...e, [name]: undefined }));
   };
   const onChange = (e) => set(e.target.name, e.target.type === 'checkbox' ? e.target.checked : e.target.value);
-  const onBlur = (e) => {
-    const msg = validate({ ...values })[e.target.name];
-    if (msg && values[e.target.name] !== '') setErrors((x) => ({ ...x, [e.target.name]: msg }));
-  };
+  // Errors are shown on submit (not on blur): messages popping in between fields
+  // moved the next field down just as people tapped it on phones.
 
   const aria = (id) => ({
     'aria-invalid': errors[id] ? true : undefined,
@@ -165,10 +163,10 @@ export default function EnquiryForm() {
         </legend>
         <div className={f.grid2}>
           <Field id="brandName" label="Brand / business name" required error={errors.brandName}>
-            <input id="brandName" name="brandName" className={f.input} value={values.brandName} onChange={onChange} onBlur={onBlur} autoComplete="organization" maxLength={80} {...aria('brandName')} />
+            <input id="brandName" name="brandName" className={f.input} value={values.brandName} onChange={onChange} autoComplete="organization" maxLength={80} {...aria('brandName')} />
           </Field>
           <Field id="instagram" label="Instagram handle" error={errors.instagram} hint="e.g. @yourbrand">
-            <input id="instagram" name="instagram" className={f.input} value={values.instagram} onChange={onChange} onBlur={onBlur} placeholder="@yourbrand" autoCapitalize="none" maxLength={80} {...aria('instagram')} />
+            <input id="instagram" name="instagram" className={f.input} value={values.instagram} onChange={onChange} placeholder="@yourbrand" autoCapitalize="none" maxLength={80} {...aria('instagram')} />
           </Field>
           <Field id="category" label="Business category" required error={errors.category}>
             <select id="category" name="category" className={f.input} value={values.category} onChange={onChange} {...aria('category')}>
@@ -188,7 +186,7 @@ export default function EnquiryForm() {
           </Field>
         </div>
         <Field id="description" label="What do you sell?" required error={errors.description} hint="Your products or services, price range and anything that makes you special.">
-          <textarea id="description" name="description" rows={4} className={f.input} value={values.description} onChange={onChange} onBlur={onBlur} maxLength={1000} {...aria('description')} />
+          <textarea id="description" name="description" rows={4} className={f.input} value={values.description} onChange={onChange} maxLength={1000} {...aria('description')} />
         </Field>
       </fieldset>
 
@@ -198,13 +196,13 @@ export default function EnquiryForm() {
         </legend>
         <div className={f.grid2}>
           <Field id="contactName" label="Owner / contact person" required error={errors.contactName}>
-            <input id="contactName" name="contactName" className={f.input} value={values.contactName} onChange={onChange} onBlur={onBlur} autoComplete="name" maxLength={80} {...aria('contactName')} />
+            <input id="contactName" name="contactName" className={f.input} value={values.contactName} onChange={onChange} autoComplete="name" maxLength={80} {...aria('contactName')} />
           </Field>
           <Field id="phone" label="Phone number" required error={errors.phone} hint="10-digit mobile, preferably on WhatsApp">
-            <input id="phone" name="phone" type="tel" inputMode="tel" className={f.input} value={values.phone} onChange={onChange} onBlur={onBlur} autoComplete="tel" placeholder="98xxxxxxxx" maxLength={16} {...aria('phone')} />
+            <input id="phone" name="phone" type="tel" inputMode="tel" className={f.input} value={values.phone} onChange={onChange} autoComplete="tel" placeholder="98xxxxxxxx" maxLength={16} {...aria('phone')} />
           </Field>
           <Field id="email" label="Email address" required error={errors.email}>
-            <input id="email" name="email" type="email" inputMode="email" className={f.input} value={values.email} onChange={onChange} onBlur={onBlur} autoComplete="email" maxLength={160} {...aria('email')} />
+            <input id="email" name="email" type="email" inputMode="email" className={f.input} value={values.email} onChange={onChange} autoComplete="email" maxLength={160} {...aria('email')} />
           </Field>
         </div>
       </fieldset>

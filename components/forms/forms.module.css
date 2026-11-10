@@ -61,6 +61,8 @@
 .input {
   width: 100%;
   min-height: 52px;
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+  scroll-margin-bottom: 120px;
   padding: 0.8rem 1rem;
   border-radius: var(--r-sm);
   border: 1.5px solid var(--cream-300);
@@ -109,6 +111,10 @@ textarea.input {
   align-items: start;
   font-size: var(--fs-sm);
   cursor: pointer;
+}
+.check {
+  min-height: 44px;
+  padding-block: 0.35rem;
 }
 .check input {
   width: 22px;

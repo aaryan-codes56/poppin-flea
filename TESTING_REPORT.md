@@ -80,10 +80,21 @@ The one live-sheet side effect from this session (an empty "Announcements" tab) 
 | Check | Result |
 |---|---|
 | `npm run build:local` | ✅ |
-| API smoke test (`npm run test:api -- poppin2026`) | ✅ 52 / 52 (staff checks skipped, since no staff login is configured locally; table bookings confirmed closed: public booking → 403, `/book` → `/book-a-stall`) |
-| Login with `admin` / `poppin2026` | ✅ |
+| API smoke test (`npm run test:api -- <local admin password>`) | ✅ 52 / 52 (staff checks skipped, since no staff login is configured locally; table bookings confirmed closed: public booking → 403, `/book` → `/book-a-stall`) |
+| Local admin login | ✅ |
 | Console errors, 8 pages × 360 px and 1440 px | ✅ none |
 | Horizontal overflow, same pages | ✅ 0 px |
 | Instagram carousel | ✅ all 12 embeds load in Chrome (598 px players) |
 | Stall form → confetti + reference, double click → 1 record | ✅ |
 | Brand category filters on `/brands` | ✅ shown (10 brands) |
+
+## Mobile re-test (11 Nov 2026), touch-emulated
+| Check | Result |
+|---|---|
+| Page width = screen width at 320 / 360 / 375 / 390 / 414 px, every page | ✅ |
+| Navbar fully visible at 320 px; stays visible while scrolling on phones | ✅ |
+| Mobile menu → every link navigates with real taps | ✅ |
+| Every footer link navigates with real taps at 320 px; nothing covering them | ✅ |
+| Stall form filled by tapping and typing at 320 px → submitted, reference shown, saved | ✅ |
+| API smoke test | ✅ 52 / 52 |
+| Production build | ✅ |

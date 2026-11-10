@@ -38,7 +38,7 @@ All work was done locally on 10 November 2026. Nothing was committed, pushed or 
 - Replaced the deprecated `priority` image prop with `preload` + `loading="eager"` on above-the-fold images.
 
 ## 7. Round 2 (owner feedback, same day)
-- **Simple local login:** username `admin`, password `poppin2026` (in `.env.development.local` only; production needs its own strong hash). Login field now accepts a plain username.
+- **Simple local login:** username `admin`, password set in `.env.development.local` (local only; production uses its own hash in Vercel). Login field now accepts a plain username.
 - **Stall booking only:** `NEXT_PUBLIC_TABLE_BOOKING_ENABLED=false`. `/book` redirects to `/book-a-stall` (server-side), the dashboard hides the table-booking tab and stats, the table-reservation terms are hidden, and the booking API refuses public table bookings. All table-booking code is kept for later.
 - **Dashboard:** one-tap status buttons (Contacted, Interested, Approved, Payment Pending, Confirmed, Rejected) in the enquiry details panel.
 - **Instagram:** 12 public posts and reels from the @poppinflea grid shown through Instagram's official embeds (`lib/data/instagram.js`, `components/ui/InstagramCarousel.js`) on the homepage and `/past-events`. Nothing is downloaded or re-hosted; embeds load only when scrolled into view. Privacy policy updated.
@@ -46,3 +46,10 @@ All work was done locally on 10 November 2026. Nothing was committed, pushed or 
 - **Motion:** `components/ui/motion.js` (no new dependencies): CSS snowfall, word-by-word headline reveal, pointer parallax on the hero collage, Ken Burns hero photo, 3D tilt + glare on cards, count-up stats strip, countdown digit tick, scroll progress bar, auto-hiding navbar, button shine, partner-name marquee, confetti on a successful enquiry. All respect `prefers-reduced-motion`.
 - **Gallery:** supports short videos (`video:` field) with hover preview and a lightbox player.
 - Fixed: Turbopack cache corruption after a parallel build (cleared `.next`); `getStaticProps` redirect not allowed at build time → moved `/book` to `getServerSideProps`; React key warning in the headline splitter.
+
+## 8. Mobile fixes (11 Nov 2026)
+- **Navbar cut off on small phones:** three elements were wider than a 320 px screen (stats-strip button, "Venue to be announced" badge on the carnival page, a partner card), which made the whole page wider than the phone. Fixed each one and added a page-wide guard (`overflow-x: clip`). The navbar no longer auto-hides on phones/tablets, and the open mobile menu drops the blur so it can't get trapped on iOS.
+- **Footer links not responding:** the sticky bottom "Book a stall / WhatsApp / Call" bar sat on top of the footer links. It now hides whenever the footer is on screen and while a form field is focused. Footer links are 44 px tall tap targets. The dev-only Next.js badge is disabled (it covered "Privacy policy" locally).
+- **Form tapping issues:** error messages no longer pop in when leaving a field (they moved the next field mid-tap); errors show on submit. Removed the tap delay (`touch-action: manipulation`), added scroll margins so focused fields aren't hidden under the navbar, and made the consent row a larger target.
+- **Local dev crashes:** iCloud Desktop sync was creating duplicate files ("LOG 2") inside the Next.js cache. The cache now lives in `.next.nosync` (ignored by iCloud), with `.next` as a symlink, local only.
+- README rewritten as a project showcase with screenshots; local test password removed from public docs.

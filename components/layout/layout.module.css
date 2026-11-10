@@ -11,6 +11,12 @@
 .navHidden {
   transform: translateY(-100%);
 }
+/* With the menu open, drop the blur: on iOS a backdrop-filter would trap the full-screen menu inside the 72px bar. */
+.navOpen {
+  background: var(--burgundy-900);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 .navClear {
   background: linear-gradient(to bottom, rgba(34, 5, 12, 0.55), rgba(34, 5, 12, 0));
 }
@@ -171,6 +177,22 @@
     height: 40px;
   }
 }
+@media (max-width: 360px) {
+  .navInner {
+    gap: 0.5rem;
+  }
+  .navCta {
+    padding-inline: 0.7rem;
+    font-size: 0.8rem;
+  }
+  .brandLogo {
+    height: 34px;
+  }
+  .menuBtn {
+    width: 44px;
+    height: 44px;
+  }
+}
 
 .mainOffset {
   padding-top: var(--nav-h);
@@ -183,7 +205,7 @@ main:focus {
 .footer {
   position: relative;
   background: var(--burgundy-950);
-  padding: var(--sp-6) 0 calc(var(--sp-6) + 80px);
+  padding: var(--sp-6) 0 calc(var(--sp-6) + env(safe-area-inset-bottom));
   overflow: hidden;
 }
 @media (min-width: 768px) {
@@ -255,7 +277,7 @@ main:focus {
 .footerList {
   list-style: none;
   display: grid;
-  gap: var(--sp-2);
+  gap: 0;
   font-size: var(--fs-sm);
 }
 .footerList li {
@@ -268,7 +290,8 @@ main:focus {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  min-height: 32px;
+  min-height: 44px;
+  padding-block: 0.25rem;
   color: var(--text-muted);
   transition: color var(--dur);
 }
@@ -319,6 +342,11 @@ main:focus {
 }
 .mobileCtaShow {
   transform: none;
+}
+.mobileCta:not(.mobileCtaShow) {
+  pointer-events: none;
+  visibility: hidden;
+  transition: transform var(--dur) var(--ease-out), visibility 0s var(--dur);
 }
 @media (max-width: 767px) {
   .mobileCta {

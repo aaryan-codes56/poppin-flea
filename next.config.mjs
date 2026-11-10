@@ -11,6 +11,8 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   agentRules: false,
+  // The dev-only "N" badge sat over footer links on small screens while testing locally.
+  devIndicators: false,
   images: {
     formats: ['image/avif', 'image/webp'],
     // Only local images are optimised; no remote hosts allowed.

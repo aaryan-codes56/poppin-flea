@@ -13,14 +13,34 @@ import styles from './layout.module.css';
 const PLAUSIBLE = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
 
 // Sticky bottom bar on phones: appears after the first screen of scrolling.
+// Hidden over the footer (so it never covers footer links) and while a form field is focused.
 function MobileCta() {
-  const [show, setShow] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
+  const [typing, setTyping] = useState(false);
   useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > window.innerHeight * 0.8);
+    const onScroll = () => setScrolled(window.scrollY > window.innerHeight * 0.8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const isField = (el) => el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+    const onFocusIn = (e) => setTyping(isField(e.target));
+    const onFocusOut = () => setTimeout(() => setTyping(isField(document.activeElement)), 50);
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
+    let io;
+    const footer = document.querySelector('footer');
+    if (footer && 'IntersectionObserver' in window) {
+      io = new IntersectionObserver(([e]) => setFooterVisible(e.isIntersecting), { rootMargin: '0px 0px 80px 0px' });
+      io.observe(footer);
+    }
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+      io?.disconnect();
+    };
   }, []);
+  const show = scrolled && !footerVisible && !typing;
   return (
     <div className={`${styles.mobileCta} ${show ? styles.mobileCtaShow : ''}`} aria-hidden={!show}>
       <Link href="/book-a-stall" className="btn btn-primary" tabIndex={show ? 0 : -1} onClick={() => track('cta_click', { cta: 'book_stall', location: 'sticky' })}>

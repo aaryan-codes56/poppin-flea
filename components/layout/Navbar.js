@@ -22,10 +22,14 @@ export default function Navbar({ overlay = false }) {
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled(y > 24);
-      if (Math.abs(y - last) > 6) {
+      // Auto-hide only on large screens. On phones it stays put so it never slides over what you're tapping.
+      const large = window.matchMedia('(min-width: 1024px)').matches;
+      if (!large) {
+        setHidden(false);
+      } else if (Math.abs(y - last) > 6) {
         setHidden(y > last && y > 480);
-        last = y;
       }
+      last = y;
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -74,7 +78,7 @@ export default function Navbar({ overlay = false }) {
 
   return (
     <header
-      className={`${styles.nav} ${solid ? styles.navSolid : styles.navClear} ${hidden && !open ? styles.navHidden : ''}`}
+      className={`${styles.nav} ${solid ? styles.navSolid : styles.navClear} ${hidden && !open ? styles.navHidden : ''} ${open ? styles.navOpen : ''}`}
       onFocus={() => setHidden(false)}
     >
       <div className={`container ${styles.navInner}`}>
