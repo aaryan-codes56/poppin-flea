@@ -2,7 +2,7 @@
 
 <img src="public/brand/poppin-logo.png" alt="Poppin' Fun & Flea" width="260" />
 
-# Poppin — Patna's Flea Market & Festive Events Platform
+# Poppin - Patna's Flea Market & Festive Events Platform
 
 **The official website and organiser dashboard for Poppin' Fun & Flea, built for Poppin Winter Carnival 2026 (23–25 December, Patna).**
 
@@ -186,5 +186,3 @@ The spreadsheet tabs `Vendor Enquiries`, `Announcements` and `Subscribers` are c
 [Project audit](PROJECT_AUDIT.md) · [Brand research](BRAND_RESEARCH.md) · [Revamp plan](REVAMP_PLAN.md) · [Feature roadmap](FEATURE_ROADMAP.md) · [Development log](DEVELOPMENT_LOG.md) · [Testing report](TESTING_REPORT.md)
 
 ---
-
-<div align="center">Made for Poppin' Fun &amp; Flea · Patna, Bihar</div>
