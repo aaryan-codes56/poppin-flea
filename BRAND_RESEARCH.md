@@ -15,7 +15,7 @@ Research date: 10 November 2026.
 
 ## 2. Brand identity (verified)
 
-- **Name / wordmark:** "POPPIN'" with "FUN & FLEA" underneath (`public/logo.png`, transparent PNG). Bubble lettering, yellow `#F4D92F`-ish fill, teal `#4FC3C5`-ish sub-line, black outline and drop shadow.
+- **Name / wordmark:** "POPPIN'" with "FUN & FLEA" underneath (`public/brand/poppin-logo.png`, trimmed transparent PNG). Bubble lettering, yellow `#F4D92F`-ish fill, teal `#4FC3C5`-ish sub-line, black outline and drop shadow.
 - **Instagram bio:** "Bihar no. 1 event curators - Group Activities, Flea Markets, Parties and more." References @gardapatna. ~518 followers at time of research.
 - **Organiser:** Garda Patna ("A Unit of Garda Media Pvt Ltd" on the Valentine poster). Instagram @gardapatna (Shubham Raj, verified, ~239K followers).
 - **Instagram highlights:** "Poppin 🎄", "Poppin ❤️", "GHF 24'", "Param's land".

@@ -69,7 +69,7 @@ Sheet1 layout (must be preserved): `Ref ID | Name | Phone | Email | Area | Date 
 - `styles/Home.module 2.css` is an unused duplicate (Finder copy).
 - `/terms` email link points to `poppinflea.com` while the site is `poppinflea.in`.
 - Admin page passes array index to optimistic updates and mutates state in place.
-- Three "feature" images (`flea-food.png`, `flea-music.png`, `flea-vibe.png`) are AI-generated stock, not Poppin photography, and were presented as if they were.
+- Three "feature" images (`flea-food.png`, `flea-music.png`, `flea-vibe.png`) are AI-generated stock, not Poppin photography, and were presented as if they were. (Removed in the revamp.)
 - No SEO (one generic title, no OG, no sitemap), no accessibility labels on the modal close button, emoji used as icons.
 - Public "Admin" link in the navbar.
 
