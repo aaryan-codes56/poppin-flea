@@ -11,12 +11,7 @@
 .navHidden {
   transform: translateY(-100%);
 }
-/* With the menu open, drop the blur: on iOS a backdrop-filter would trap the full-screen menu inside the 72px bar. */
-.navOpen {
-  background: var(--burgundy-900);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+
 .navClear {
   background: linear-gradient(to bottom, rgba(34, 5, 12, 0.55), rgba(34, 5, 12, 0));
 }
@@ -25,6 +20,12 @@
   backdrop-filter: saturate(140%) blur(12px);
   -webkit-backdrop-filter: saturate(140%) blur(12px);
   box-shadow: 0 1px 0 rgba(227, 201, 135, 0.18);
+}
+/* Menu open: solid bar, no blur (declared after .navSolid so it wins). */
+.nav.navOpen {
+  background: var(--burgundy-900);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .navInner {
   height: 100%;
@@ -104,7 +105,14 @@
 
 .mobilePanel {
   position: fixed;
-  inset: var(--nav-h) 0 0 0;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(100dvh - var(--nav-h));
+  z-index: 99;
+  color: var(--cream-50);
+  overscroll-behavior: contain;
   background: var(--burgundy-900);
   display: flex;
   flex-direction: column;

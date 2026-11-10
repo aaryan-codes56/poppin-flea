@@ -77,6 +77,7 @@ export default function Navbar({ overlay = false }) {
   const solid = scrolled || !overlay || open;
 
   return (
+    <>
     <header
       className={`${styles.nav} ${solid ? styles.navSolid : styles.navClear} ${hidden && !open ? styles.navHidden : ''} ${open ? styles.navOpen : ''}`}
       onFocus={() => setHidden(false)}
@@ -115,8 +116,11 @@ export default function Navbar({ overlay = false }) {
           </button>
         </div>
       </div>
+    </header>
 
-      <div id="mobile-menu" ref={panelRef} className={styles.mobilePanel} hidden={!open}>
+    {/* Rendered outside <header> on purpose: on iOS Safari, styles on the header
+        (blur, transforms) trap a fixed child inside the 72px bar. */}
+    <div id="mobile-menu" ref={panelRef} className={`${styles.mobilePanel} tone-dark`} hidden={!open}>
         <nav aria-label="Mobile">
           <ul className={styles.mobileList}>
             {NAV_LINKS.map((l, i) => (
@@ -152,6 +156,6 @@ export default function Navbar({ overlay = false }) {
           </div>
         </div>
       </div>
-    </header>
+    </>
   );
 }
